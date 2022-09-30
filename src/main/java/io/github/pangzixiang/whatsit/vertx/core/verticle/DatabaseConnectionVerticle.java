@@ -106,7 +106,7 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                                         }
                                     });
                         });
-        log.info("Added periodic Database Health checking!");
+        log.debug("Added periodic Database Health checking!");
         return Future.succeededFuture();
     }
 
@@ -121,7 +121,7 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                         }
                     });
         } else {
-            log.info("Flyway is disabled, thus skip migration!");
+            log.debug("Flyway is disabled, thus skip migration!");
             return Future.succeededFuture();
         }
     }
