@@ -23,7 +23,7 @@ public class FlywayMigrateVerticle extends CoreVerticle{
     }
 
     private void migrate(Promise<Void> startPromise) {
-        log.info("Starting to migrate the database...");
+        log.debug("Starting to migrate the database...");
         JDBCConnectOptions jdbcConnectOptions = getApplicationContext().getApplicationConfiguration().getJDBCConnectOptions();
         Flyway flyway = Flyway.configure()
                 .initSql(DatabaseConnectionVerticle.VERIFICATION_SQL)

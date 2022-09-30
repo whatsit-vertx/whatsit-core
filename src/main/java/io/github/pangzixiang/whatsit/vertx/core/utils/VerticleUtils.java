@@ -15,13 +15,13 @@ public class VerticleUtils {
                 .onSuccess(id -> {
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                         vertx.undeploy(id)
-                                .onFailure(failure -> log.error("Failed to undeploy Verticle [{} -> {}]"
+                                .onFailure(failure -> log.debug("Failed to undeploy Verticle [{} -> {}]"
                                         , verticle.getClass().getSimpleName(), id, failure));
                         log.info("Undeploy Verticle [{} -> {}]"
                                 , verticle.getClass().getSimpleName(), id);
                     }));
 
-                    log.info("added shutdown hook for Verticle - [{}] -> {}"
+                    log.debug("added shutdown hook for Verticle - [{}] -> {}"
                             , verticle.getClass().getSimpleName(), id);
                 });
     }

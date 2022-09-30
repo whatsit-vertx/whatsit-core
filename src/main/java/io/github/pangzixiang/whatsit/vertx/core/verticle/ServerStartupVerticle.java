@@ -38,7 +38,7 @@ public class ServerStartupVerticle extends CoreVerticle {
         super.start();
         getVertx().eventBus().consumer(CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID).handler(this::start)
                 .exceptionHandler(exception -> log.error(exception.getMessage(), exception))
-                .completionHandler(complete -> log.info("EventBus Consumer [{}] registered", CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID));
+                .completionHandler(complete -> log.debug("EventBus Consumer [{}] registered", CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID));
     }
 
     private void start(Message<Object> message) {
@@ -63,7 +63,7 @@ public class ServerStartupVerticle extends CoreVerticle {
                                         , (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime())/1000);
                             }));
 
-                            log.info("added shutdown hook for HTTP Server");
+                            log.debug("added shutdown hook for HTTP Server");
 
                             promise.complete();
                         })
