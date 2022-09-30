@@ -18,11 +18,10 @@ The whatsit-core library provides the following features:
 2. Init the Application Context
 3. Init the Initializer and pass your Controllers into it.
 4. Finally, run the application.
-```java
-import io.github.pangzixiang.whatsit.core.ApplicationRunner;
-import io.github.pangzixiang.whatsit.core.context.ApplicationContext;
 
-import java.util.List;
+```java
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationRunner;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 
 public class RunWhatsitCoreLocalTest {
     public static void main(String[] args) {
@@ -41,10 +40,11 @@ public class RunWhatsitCoreLocalTest {
 1. Create a new Class to extend the BaseController Class
 2. Create a new method with @RestController method
 3. Finally, after you add the controller to the ApplicationInitializer, then the application will automatically register the endpoint and deploy this Verticle.
+
 ```java
-import io.github.pangzixiang.whatsit.core.annotation.RestController;
-import io.github.pangzixiang.whatsit.core.context.ApplicationContext;
-import io.github.pangzixiang.whatsit.core.constant.HttpRequestMethod;
+import io.github.pangzixiang.whatsit.vertx.core.RestController;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
+import io.github.pangzixiang.whatsit.vertx.core.HttpRequestMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.ext.web.RoutingContext;
 
@@ -114,11 +114,12 @@ swagger: {
 }
 ```
 2. register the Swagger Controller and your Self Controller
+
 ```java
 import io.github.pangzixiang.whatsit.local.Controller.EchoController;
 import io.github.pangzixiang.whatsit.controller.SwaggerController;
-import io.github.pangzixiang.whatsit.core.ApplicationRunner;
-import io.github.pangzixiang.whatsit.core.context.ApplicationContext;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationRunner;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 
 public class RunWhatsitSwaggerLocalTest {
     public static void main(String[] args) {
