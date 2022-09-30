@@ -7,9 +7,9 @@
     <version>1.0-SNAPSHOT</version>
 
     <name>whatsit-core</name>
-    <description>Whatsit vertx core library</description>
+    <description>Whatsit Vertx Core library</description>
 
-    <url>https://github.com/pangzixiang/whatsit-vertx</url>
+    <url>https://github.com/whatsit-vertx/whatsit-core</url>
 
     <developers>
         <developer>
@@ -233,6 +233,9 @@
                 <groupId>com.github.danielflower.mavenplugins</groupId>
                 <artifactId>multi-module-maven-release-plugin</artifactId>
                 <version>3.6.1</version>
+                <configuration>
+                    <serverId>github</serverId>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -297,4 +300,10 @@
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
+    <scm>
+        <url>https://github.com/whatsit-vertx/whatsit-core.git</url>
+        <developerConnection>scm:git:https://github.com/whatsit-vertx/whatsit-core</developerConnection>
+        <connection>scm:git:https://github.com/whatsit-vertx/whatsit-core</connection>
+    </scm>
 </project>
