@@ -27,15 +27,15 @@
         <!--Specify the version for all dependencies-->
         <vertx.version>4.3.3</vertx.version>
         <lombok.version>1.18.24</lombok.version>
-        <slf4j.version>2.0.0</slf4j.version>
-        <logback.version>1.4.0</logback.version>
+        <slf4j.version>2.0.1</slf4j.version>
+        <logback.version>1.4.1</logback.version>
         <config.version>1.4.2</config.version>
         <jackson.version>2.13.4</jackson.version>
         <janino.version>3.1.8</janino.version>
         <h2.version>2.1.214</h2.version>
         <agroal.version>2.0</agroal.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <flyway.version>9.2.2</flyway.version>
+        <flyway.version>9.3.0</flyway.version>
         <caffeine.version>3.1.1</caffeine.version>
 
         <maven-scm-plugin.version>1.12.0</maven-scm-plugin.version>
@@ -48,6 +48,7 @@
         <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
         <maven-javadoc-plugin>3.4.1</maven-javadoc-plugin>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
+        <multi-module-maven-release-plugin.version>3.6.1</multi-module-maven-release-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -175,11 +176,13 @@
                 <artifactId>maven-scm-plugin</artifactId>
                 <version>${maven-scm-plugin.version}</version>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven-jar-plugin.version}</version>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -232,22 +235,12 @@
             <plugin>
                 <groupId>com.github.danielflower.mavenplugins</groupId>
                 <artifactId>multi-module-maven-release-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>${multi-module-maven-release-plugin.version}</version>
                 <configuration>
                     <serverId>github</serverId>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>${maven-release-plugin.version}</version>
-                <configuration>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>release</releaseProfiles>
-                    <goals>deploy</goals>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -259,6 +252,7 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -273,6 +267,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -286,7 +281,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 
