@@ -2,18 +2,24 @@ package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
+import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.TimeUnit;
+
+import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.createCircuitBreaker;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
 @Slf4j
 public class DatabaseConnectionVerticle extends CoreVerticle {
 
     public static final String VERIFICATION_SQL = "select 1 from dual";
+
+    private CircuitBreaker circuitBreaker;
 
     public DatabaseConnectionVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
@@ -23,6 +29,7 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         super.start();
         log.info("Starting to connect to database");
+        this.circuitBreaker = createCircuitBreaker(getVertx());
         connect(startPromise);
     }
 
@@ -46,13 +53,10 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                     if (booleanAsyncResult.succeeded()) {
                         getApplicationContext().setJdbcPool(jdbcPool);
                         log.info("Database Connected [ {} ]!", booleanAsyncResult.result());
+
                         HealthDependency.DatabaseHealth databaseHealth = new HealthDependency.DatabaseHealth(booleanAsyncResult.result());
                         getApplicationContext().getHealthDependency().setDatabaseHealth(databaseHealth);
-                    } else {
-                        startPromise.fail(booleanAsyncResult.cause());
-                    }
-                })
-                .compose(then ->
+
                         CompositeFuture.all(healthCheckSchedule(jdbcPool), flywayMigration())
                                 .onComplete(compositeFutureAsyncResult -> {
                                     if (compositeFutureAsyncResult.succeeded()) {
@@ -61,33 +65,42 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                                     } else {
                                         startPromise.fail(compositeFutureAsyncResult.cause());
                                     }
-                                })
-                );
+                                });
+                    } else {
+                        startPromise.fail(booleanAsyncResult.cause());
+                        log.error("Database Connection FAILED!!!");
+                        System.exit(-1);
+                    }
+                });
     }
 
     private Future<Boolean> verify(JDBCPool jdbcPool) {
-        return jdbcPool
-                .preparedQuery(VERIFICATION_SQL)
-                .execute()
-                .map(rows -> {
-                    Integer result = rows.iterator().next().getInteger(0);
-                    if (result.equals(1)) {
-                        log.debug("Database Verification passed! [expect: 1, result: {}]", result);
-                        return true;
-                    } else {
-                        String err = String.format("Database Verification Failed! [expect: 1, result: %s]", result);
-                        log.error(err);
-                        return false;
-                    }
-                })
-                .onFailure(throwable -> {
-                    log.error("Database Connection Failed with ERROR: {}, ", throwable.getMessage(), throwable);
-                });
+        return circuitBreaker.execute(promise -> {
+            jdbcPool
+                    .preparedQuery(VERIFICATION_SQL)
+                    .execute()
+                    .compose(rows -> {
+                        Integer result = rows.iterator().next().getInteger(0);
+                        if (result.equals(1)) {
+                            log.debug("Database Verification passed! [expect: 1, result: {}]", result);
+                            return Future.succeededFuture(true);
+                        } else {
+                            String err = String.format("Database Verification Failed! [expect: 1, result: %s]", result);
+                            log.error(err);
+                            return Future.succeededFuture(false);
+                        }
+                    })
+                    .onFailure(throwable -> {
+                        log.error("Database Connection Failed with ERROR: {}, ", throwable.getMessage(), throwable);
+                        promise.fail(throwable);
+                    })
+                    .onSuccess(promise::complete);
+        });
     }
 
     private Future<Void> healthCheckSchedule(JDBCPool jdbcPool) {
         getVertx()
-                .setPeriodic(getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod()*1000,
+                .setPeriodic(TimeUnit.SECONDS.toMillis(getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod()),
                         handler -> {
                             log.debug("Starting to check the Database Health [ {} s ]",
                                     getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod());

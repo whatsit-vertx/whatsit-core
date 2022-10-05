@@ -30,7 +30,7 @@
         <slf4j.version>2.0.1</slf4j.version>
         <logback.version>1.4.1</logback.version>
         <config.version>1.4.2</config.version>
-        <jackson.version>2.13.4</jackson.version>
+        <jackson.version>2.14.0-rc1</jackson.version>
         <janino.version>3.1.8</janino.version>
         <h2.version>2.1.214</h2.version>
         <agroal.version>2.0</agroal.version>
@@ -82,6 +82,16 @@
         </dependency>
 
         <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-sql-client-templates</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-circuit-breaker</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.agroal</groupId>
             <artifactId>agroal-pool</artifactId>
             <version>${agroal.version}</version>
@@ -96,7 +106,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <scope>test</scope>
             <version>${h2.version}</version>
         </dependency>
 
@@ -121,6 +131,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${jackson.version}</version>
         </dependency>
 

@@ -1,10 +1,10 @@
 package io.github.pangzixiang.whatsit.vertx.core.model;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
+@Data
 @Builder
-@Getter
 public class Health {
     private boolean isHealth;
     private String name;
