@@ -1,16 +1,21 @@
 package io.github.pangzixiang.whatsit.vertx.core.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.Getter;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 
 @Getter
 public class HttpResponse {
 
-    private final Date date = new Date(System.currentTimeMillis());
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private final LocalDateTime date = LocalDateTime.now();
 
     @JsonIgnore
     private final HttpResponseStatus status;

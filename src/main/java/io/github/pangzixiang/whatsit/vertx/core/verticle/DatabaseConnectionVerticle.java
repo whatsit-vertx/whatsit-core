@@ -9,6 +9,8 @@ import io.vertx.core.Promise;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.TimeUnit;
+
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.createCircuitBreaker;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
@@ -98,7 +100,7 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
 
     private Future<Void> healthCheckSchedule(JDBCPool jdbcPool) {
         getVertx()
-                .setPeriodic(getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod()*1000,
+                .setPeriodic(TimeUnit.SECONDS.toMillis(getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod()),
                         handler -> {
                             log.debug("Starting to check the Database Health [ {} s ]",
                                     getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod());
