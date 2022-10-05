@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.ZoneId;
 
 import static java.time.LocalDateTime.now;
 
@@ -35,7 +35,7 @@ public class HealthDependency {
 
         public DatabaseHealth(Boolean isHealth) {
             this.isHealth = isHealth;
-            this.lastUpdated = now();
+            this.lastUpdated = now(ZoneId.systemDefault());
         }
     }
 }

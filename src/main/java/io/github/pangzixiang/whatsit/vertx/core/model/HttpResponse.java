@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 
 @Getter
@@ -15,7 +16,7 @@ public class HttpResponse {
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private final LocalDateTime date = LocalDateTime.now();
+    private final LocalDateTime date = LocalDateTime.now(ZoneId.systemDefault());
 
     @JsonIgnore
     private final HttpResponseStatus status;
