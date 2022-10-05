@@ -82,6 +82,16 @@
         </dependency>
 
         <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-sql-client-templates</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-circuit-breaker</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.agroal</groupId>
             <artifactId>agroal-pool</artifactId>
             <version>${agroal.version}</version>

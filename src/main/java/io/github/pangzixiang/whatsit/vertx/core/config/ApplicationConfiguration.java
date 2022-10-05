@@ -13,9 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.Objects.requireNonNullElseGet;
 
 @Slf4j
 public class ApplicationConfiguration {
@@ -27,105 +26,67 @@ public class ApplicationConfiguration {
         this.config = ConfigFactory.load(getEnv());
     }
 
-    private void logForKey(String format, String key) {
-        log.warn("Unable to get {} value for key [{}], thus return null"
-                , format, key);
-    }
-
-    private void logForValue(String value, String defaultValue) {
-        log.warn("Unable to get {} value from environment variables, thus set to default value -> {}"
-                , value, defaultValue);
+    public Object getValue(String key) {
+        try {
+            return this.config.getValue(key).unwrapped();
+        } catch (ConfigException e) {
+            log.warn("Unable to get value for key [{}], thus return null", key, e);
+            return null;
+        }
     }
 
     public String getString(String key) {
-        try {
-            return this.config.getString(key);
-        } catch (ConfigException e) {
-            logForKey("String", key);
-            return null;
-        }
-
+        return (String) this.getValue(key);
     }
 
     public Integer getInteger(String key) {
-        try {
-            return this.config.getInt(key);
-        } catch (ConfigException e) {
-            logForKey("Integer", key);
-            return null;
-        }
+        return (Integer) this.getValue(key);
     }
 
     public Boolean getBoolean(String key) {
-        try {
-            return this.config.getBoolean(key);
-        } catch (ConfigException e) {
-            logForKey("Boolean", key);
-            return null;
-        }
+        return (Boolean) this.getValue(key);
     }
 
     public Config getConfig(String key) {
-        try {
-            return this.config.getConfig(key);
-        } catch (ConfigException e) {
-            logForKey("Config", key);
-            return null;
-        }
+        return (Config) this.getValue(key);
     }
 
     public String getEnv() {
-        return requireNonNullElseGet(System.getProperty(ConfigurationConstants.ENV), () -> {
-            logForValue("ENV", ConfigurationConstants.DEFAULT.LOCAL);
-            return ConfigurationConstants.DEFAULT.LOCAL;
-        });
+        return Objects.requireNonNullElse(System.getProperty(ConfigurationConstants.ENV)
+                , ConfigurationConstants.DEFAULT.LOCAL);
     }
 
     public Integer getPort() {
-        return requireNonNullElseGet(getInteger(ConfigurationConstants.PORT), () -> {
-            logForValue("PORT", String.valueOf(ConfigurationConstants.DEFAULT.PORT));
-            return ConfigurationConstants.DEFAULT.PORT;
-        });
+        return Objects.requireNonNullElse(getInteger(ConfigurationConstants.PORT)
+                , ConfigurationConstants.DEFAULT.PORT);
     }
 
     public String getName() {
-        return requireNonNullElseGet(getString(ConfigurationConstants.NAME), () -> {
-            logForValue("Service Name", ConfigurationConstants.DEFAULT.NAME);
-            return ConfigurationConstants.DEFAULT.NAME;
-        });
+        return Objects.requireNonNullElse(getString(ConfigurationConstants.NAME)
+                , ConfigurationConstants.DEFAULT.NAME);
     }
 
     public Integer getHealthCheckPeriod() {
-        return requireNonNullElseGet(getInteger(ConfigurationConstants.HEALTH_CHECK_PERIOD), () -> {
-           logForValue("Health Check Period", String.valueOf(ConfigurationConstants.DEFAULT.HEALTH_CHECK_PERIOD));
-           return ConfigurationConstants.DEFAULT.HEALTH_CHECK_PERIOD;
-        });
+        return Objects.requireNonNullElse(getInteger(ConfigurationConstants.HEALTH_CHECK_PERIOD)
+                , ConfigurationConstants.DEFAULT.HEALTH_CHECK_PERIOD);
     }
 
     public VertxOptions getVertxOptions() {
         VertxOptions options = new VertxOptions();
 
-        options.setWorkerPoolSize(requireNonNullElseGet(getInteger(ConfigurationConstants.WORKER_POOL_SIZE), () -> {
-            logForValue("Worker Pool Size", String.valueOf(ConfigurationConstants.DEFAULT.WORKER_POOL_SIZE));
-            return ConfigurationConstants.DEFAULT.WORKER_POOL_SIZE;
-        }));
+        options.setWorkerPoolSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.WORKER_POOL_SIZE)
+                , ConfigurationConstants.DEFAULT.WORKER_POOL_SIZE));
 
-        options.setInternalBlockingPoolSize(requireNonNullElseGet(getInteger(ConfigurationConstants.BLOCKING_POOL_SIZE), () -> {
-            logForValue("Blocking Pool Size", String.valueOf(ConfigurationConstants.DEFAULT.BLOCKING_POOL_SIZE));
-            return ConfigurationConstants.DEFAULT.BLOCKING_POOL_SIZE;
-        }));
+        options.setInternalBlockingPoolSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.BLOCKING_POOL_SIZE)
+                , ConfigurationConstants.DEFAULT.BLOCKING_POOL_SIZE));
 
-        options.setEventLoopPoolSize(requireNonNullElseGet(getInteger(ConfigurationConstants.EVENT_LOOP_POOL_SIZE), () -> {
-            logForValue("Event Loop Pool Size", String.valueOf(ConfigurationConstants.DEFAULT.EVENT_LOOP_POOL_SIZE));
-            return ConfigurationConstants.DEFAULT.EVENT_LOOP_POOL_SIZE;
-        }));
+        options.setEventLoopPoolSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.EVENT_LOOP_POOL_SIZE)
+                , ConfigurationConstants.DEFAULT.EVENT_LOOP_POOL_SIZE));
 
         options.setHAEnabled(getBoolean(ConfigurationConstants.HA_ENABLED) != null && getBoolean(ConfigurationConstants.HA_ENABLED));
 
-        options.setHAGroup(requireNonNullElseGet(getString(ConfigurationConstants.HA_GROUP), () -> {
-            logForValue("HA Group Name", ConfigurationConstants.DEFAULT.HA_GROUP_NAME);
-            return ConfigurationConstants.DEFAULT.HA_GROUP_NAME;
-        }));
+        options.setHAGroup(Objects.requireNonNullElse(getString(ConfigurationConstants.HA_GROUP)
+                , ConfigurationConstants.DEFAULT.HA_GROUP_NAME));
 
         return options;
     }
@@ -140,36 +101,26 @@ public class ApplicationConfiguration {
     }
 
     public String flywayLocation() {
-        return requireNonNullElseGet(getString(ConfigurationConstants.DATABASE_FLYWAY_LOCATION), () -> {
-            logForValue("Flyway location", ConfigurationConstants.DEFAULT.DATABASE_FLYWAY_LOCATION);
-            return ConfigurationConstants.DEFAULT.DATABASE_FLYWAY_LOCATION;
-        });
+        return Objects.requireNonNullElse(getString(ConfigurationConstants.DATABASE_FLYWAY_LOCATION)
+                , ConfigurationConstants.DEFAULT.DATABASE_FLYWAY_LOCATION);
     }
 
     public PoolOptions getJDBCPoolOptions() {
         PoolOptions poolOptions = new PoolOptions();
 
-        poolOptions.setMaxSize(requireNonNullElseGet(getInteger(ConfigurationConstants.DATABASE_MAX_POOL_SIZE), () -> {
-            logForValue("Database Max Pool Size", String.valueOf(ConfigurationConstants.DEFAULT.DATABASE_MAX_POOL_SIZE));
-            return ConfigurationConstants.DEFAULT.DATABASE_MAX_POOL_SIZE;
-        }));
+        poolOptions.setMaxSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_MAX_POOL_SIZE)
+                , ConfigurationConstants.DEFAULT.DATABASE_MAX_POOL_SIZE));
 
-        poolOptions.setConnectionTimeout(requireNonNullElseGet(getInteger(ConfigurationConstants.DATABASE_CONNECTION_TIMEOUT), () -> {
-            logForValue("Database Connection Timeout", String.valueOf(ConfigurationConstants.DEFAULT.DATABASE_CONNECTION_TIMEOUT));
-            return ConfigurationConstants.DEFAULT.DATABASE_CONNECTION_TIMEOUT;
-        }));
+        poolOptions.setConnectionTimeout(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_CONNECTION_TIMEOUT)
+                , ConfigurationConstants.DEFAULT.DATABASE_CONNECTION_TIMEOUT));
         poolOptions.setConnectionTimeoutUnit(TimeUnit.SECONDS);
 
-        poolOptions.setIdleTimeout(requireNonNullElseGet(getInteger(ConfigurationConstants.DATABASE_IDLE_TIMEOUT), () -> {
-            logForValue("Database Idle Timeout", String.valueOf(ConfigurationConstants.DEFAULT.DATABASE_IDLE_TIMEOUT));
-            return ConfigurationConstants.DEFAULT.DATABASE_IDLE_TIMEOUT;
-        }));
+        poolOptions.setIdleTimeout(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_IDLE_TIMEOUT)
+                , ConfigurationConstants.DEFAULT.DATABASE_IDLE_TIMEOUT));
         poolOptions.setIdleTimeoutUnit(TimeUnit.SECONDS);
 
-        poolOptions.setEventLoopSize(requireNonNullElseGet(getInteger(ConfigurationConstants.DATABASE_EVENT_LOOP_SIZE), () -> {
-            logForValue("Database Event Loop Size", String.valueOf(ConfigurationConstants.DEFAULT.DATABASE_EVENT_LOOP_SIZE));
-            return ConfigurationConstants.DEFAULT.DATABASE_EVENT_LOOP_SIZE;
-        }));
+        poolOptions.setEventLoopSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_EVENT_LOOP_SIZE)
+                , ConfigurationConstants.DEFAULT.DATABASE_EVENT_LOOP_SIZE));
 
         poolOptions.setShared(true);
 
