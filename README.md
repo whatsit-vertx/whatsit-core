@@ -175,6 +175,35 @@ public class EchoController extends BaseController {
 }
 ```
 
+- Schedule Job
+1. extend Class BaseScheduleJob
+2. put the logic to the abstract method 'execute'
+3. add Annotation 'Schedule' to the method 'execute'
+4. specify the period or delay to the Annotation or pass the config key into it
+```java
+public class TestScheduleJob extends BaseScheduleJob{
+    public TestScheduleJob(ApplicationContext applicationContext) {
+        super(applicationContext);
+    }
+
+    @Override
+    @Schedule(configKey = "schedule.testJob")
+    // or @Schedule(periodInMillis = 10_000, delayInMillis = 0)
+    public void execute() {
+        // do some thing
+    }
+}
+```
+config:
+```text
+schedule: {
+  testJob: {
+    period: 30000
+    delay: 5000
+  }
+}
+```
+
 ### Upcoming feature:
 - [Swagger](https://github.com/swagger-api/swagger-ui) Integration (ongoing)
 - [Caffeine](https://github.com/ben-manes/caffeine) Cache Integration (done)
