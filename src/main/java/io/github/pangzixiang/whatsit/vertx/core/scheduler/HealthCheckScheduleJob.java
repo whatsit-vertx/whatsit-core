@@ -15,7 +15,7 @@ public class HealthCheckScheduleJob extends BaseScheduleJob{
     }
 
     @Override
-    @Schedule(configKey = "schedule.healthCheck")
+    @Schedule(delayInMillis = 10_000, periodInMillis = 30_000, configKey = "schedule.healthCheck")
     public void execute() {
         log.debug("Starting to check the Database Health!");
         JDBCPool jdbcPool = getApplicationContext().getJdbcPool();

@@ -1,6 +1,7 @@
 package io.github.pangzixiang.whatsit.vertx.core.scheduler;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.Schedule;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.vertx.core.AbstractVerticle;
@@ -54,9 +55,14 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
                     long period;
                     long delay;
                     if (StringUtils.isNotBlank(key)) {
-                        Config config = getApplicationContext().getApplicationConfiguration().getConfig(key);
-                        period = config.getLong(PERIOD_KEY);
-                        delay = config.getLong(DELAY_KEY);
+                        try {
+                            Config config = getApplicationContext().getApplicationConfiguration().getConfig(key);
+                            period = config.getLong(PERIOD_KEY);
+                            delay = config.getLong(DELAY_KEY);
+                        } catch (ConfigException e) {
+                            period = schedule.periodInMillis();
+                            delay = schedule.delayInMillis();
+                        }
                     } else {
                         period = schedule.periodInMillis();
                         delay = schedule.delayInMillis();
@@ -65,9 +71,10 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
                     if (delay > 0) {
                         if (period > 0) {
                             log.info("register schedule job {} with Settings [period: {}, delay: {}]", this.getClass().getSimpleName(), period, delay);
+                            long finalPeriod = period;
                             getVertx().setTimer(delay, h1 -> {
                                 execute();
-                                getVertx().setPeriodic(period, h2 -> execute());
+                                getVertx().setPeriodic(finalPeriod, h2 -> execute());
                             });
                         } else {
                             log.info("register schedule job {} with Settings [delay: {}]", this.getClass().getSimpleName(), delay);
