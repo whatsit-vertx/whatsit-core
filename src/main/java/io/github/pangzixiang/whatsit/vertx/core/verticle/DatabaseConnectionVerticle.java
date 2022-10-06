@@ -2,14 +2,13 @@ package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
+import io.github.pangzixiang.whatsit.vertx.core.scheduler.HealthCheckScheduleJob;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.TimeUnit;
 
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.createCircuitBreaker;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
@@ -19,17 +18,17 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
 
     public static final String VERIFICATION_SQL = "select 1 from dual";
 
-    private CircuitBreaker circuitBreaker;
+    private final CircuitBreaker circuitBreaker;
 
     public DatabaseConnectionVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
+        this.circuitBreaker = createCircuitBreaker(applicationContext.getVertx());
     }
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         super.start();
         log.info("Starting to connect to database");
-        this.circuitBreaker = createCircuitBreaker(getVertx());
         connect(startPromise);
     }
 
@@ -57,7 +56,7 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                         HealthDependency.DatabaseHealth databaseHealth = new HealthDependency.DatabaseHealth(booleanAsyncResult.result());
                         getApplicationContext().getHealthDependency().setDatabaseHealth(databaseHealth);
 
-                        CompositeFuture.all(healthCheckSchedule(jdbcPool), flywayMigration())
+                        CompositeFuture.all(healthCheckSchedule(), flywayMigration())
                                 .onComplete(compositeFutureAsyncResult -> {
                                     if (compositeFutureAsyncResult.succeeded()) {
                                         startPromise.complete();
@@ -98,29 +97,8 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
         });
     }
 
-    private Future<Void> healthCheckSchedule(JDBCPool jdbcPool) {
-        getVertx()
-                .setPeriodic(TimeUnit.SECONDS.toMillis(getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod()),
-                        handler -> {
-                            log.debug("Starting to check the Database Health [ {} s ]",
-                                    getApplicationContext().getApplicationConfiguration().getHealthCheckPeriod());
-                            verify(jdbcPool)
-                                    .onComplete(booleanAsyncResult -> {
-                                        if (booleanAsyncResult.succeeded()) {
-                                            log.debug("Database Health Check Done! [ Connection: {} ]", booleanAsyncResult.result());
-                                            HealthDependency.DatabaseHealth databaseHealth =
-                                                    new HealthDependency.DatabaseHealth(booleanAsyncResult.result());
-                                            getApplicationContext().getHealthDependency().setDatabaseHealth(databaseHealth);
-                                        } else {
-                                            HealthDependency.DatabaseHealth databaseHealth =
-                                                    new HealthDependency.DatabaseHealth(false);
-                                            getApplicationContext().getHealthDependency().setDatabaseHealth(databaseHealth);
-                                            log.error("Database Health Check Failed, Health Status updated to [FALSE]!");
-                                        }
-                                    });
-                        });
-        log.debug("Added periodic Database Health checking!");
-        return Future.succeededFuture();
+    private Future<String> healthCheckSchedule() {
+        return deployVerticle(getVertx(), new HealthCheckScheduleJob(getApplicationContext()));
     }
 
     private Future<String> flywayMigration() {

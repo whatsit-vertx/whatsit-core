@@ -63,6 +63,10 @@ public class CoreUtils {
         options.setTimeout(CIRCUIT_BREAKER_TIMEOUT_MS);
         CircuitBreaker circuitBreaker = CircuitBreaker.create(name, vertx, options);
         circuitBreaker.retryPolicy(retryCount -> retryCount * 500L);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Shutting down CircuitBreaker [{}] ...", name);
+            circuitBreaker.close();
+        }));
         return circuitBreaker;
     }
 

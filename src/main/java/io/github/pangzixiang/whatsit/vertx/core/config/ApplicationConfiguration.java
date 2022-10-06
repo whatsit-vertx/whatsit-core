@@ -48,7 +48,7 @@ public class ApplicationConfiguration {
     }
 
     public Config getConfig(String key) {
-        return (Config) this.getValue(key);
+        return this.config.getConfig(key);
     }
 
     public String getEnv() {
@@ -64,11 +64,6 @@ public class ApplicationConfiguration {
     public String getName() {
         return Objects.requireNonNullElse(getString(ConfigurationConstants.NAME)
                 , ConfigurationConstants.DEFAULT.NAME);
-    }
-
-    public Integer getHealthCheckPeriod() {
-        return Objects.requireNonNullElse(getInteger(ConfigurationConstants.HEALTH_CHECK_PERIOD)
-                , ConfigurationConstants.DEFAULT.HEALTH_CHECK_PERIOD);
     }
 
     public VertxOptions getVertxOptions() {
