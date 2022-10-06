@@ -6,6 +6,7 @@ import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.controller.BaseController;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
+import io.vertx.core.Vertx;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,14 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class ApplicationContext {
+
+    @Getter
+    @Setter
+    private Vertx vertx;
+
+    @Getter
+    @Setter
+    private int port;
 
     @Getter
     private final ApplicationConfiguration applicationConfiguration;

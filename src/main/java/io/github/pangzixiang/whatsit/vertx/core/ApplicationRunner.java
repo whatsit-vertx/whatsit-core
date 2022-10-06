@@ -22,6 +22,7 @@ public class ApplicationRunner {
     public ApplicationRunner(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.vertx = vertx();
+        this.applicationContext.setVertx(this.vertx);
         // add Core Controllers
         this.applicationContext.registerController(HealthController.class);
     }
@@ -30,25 +31,23 @@ public class ApplicationRunner {
         return Vertx.vertx(applicationContext.getApplicationConfiguration().getVertxOptions());
     }
 
-    public Future<Vertx> run() {
+    public void run() {
         System.getProperties()
                 .forEach((key, value) ->
                         log.debug("System Property: [{}]->[{}]", key, value));
-        return CompositeFuture.all(
+        CompositeFuture.all(
                         deployVerticle(vertx, new ServerStartupVerticle(applicationContext)),
                         applicationContext.getApplicationConfiguration().isDatabaseEnable() ?
                                 deployVerticle(vertx, new DatabaseConnectionVerticle(applicationContext)) :
                                 Future.succeededFuture()
                 )
-                .map(compositeFutureAsyncResult -> {
+                .onComplete(compositeFutureAsyncResult -> {
                     if (compositeFutureAsyncResult.succeeded()) {
                         this.vertx.eventBus().publish(SERVER_STARTUP_VERTICLE_ID, true);
                     } else {
                         log.error(compositeFutureAsyncResult.cause().getMessage(), compositeFutureAsyncResult.cause());
                         System.exit(-1);
                     }
-                    return this.vertx;
                 });
-
     }
 }

@@ -51,6 +51,9 @@ public class ServerStartupVerticle extends CoreVerticle {
                         .requestHandler(router)
                         .listen(getApplicationContext().getApplicationConfiguration().getPort())
                         .onSuccess(success -> {
+
+                            getApplicationContext().setPort(success.actualPort());
+
                             log.info("[{}] HTTP Server for Service [{}] started at port [{}] successfully! -> [{} ms]"
                                     , getApplicationContext().getApplicationConfiguration().getEnv().toUpperCase()
                                     , getApplicationContext().getApplicationConfiguration().getName().toUpperCase()

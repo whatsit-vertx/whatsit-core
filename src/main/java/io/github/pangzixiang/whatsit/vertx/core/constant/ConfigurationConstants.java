@@ -11,8 +11,6 @@ public class ConfigurationConstants {
 
     public static final String NAME = "app.name";
 
-    public static final String HEALTH_CHECK_PERIOD = "app.healthCheckPeriod";
-
     public static final String WORKER_POOL_SIZE = "vertx.worker-pool-size";
 
     public static final String BLOCKING_POOL_SIZE = "vertx.blocking-pool-size";
@@ -83,7 +81,5 @@ public class ConfigurationConstants {
         public static final int DATABASE_EVENT_LOOP_SIZE = 1;
 
         public static final String DATABASE_FLYWAY_LOCATION = "flyway/migration";
-
-        public static final int HEALTH_CHECK_PERIOD = 60;
     }
 }

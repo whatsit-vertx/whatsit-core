@@ -13,8 +13,7 @@ public class RunWhatsitCoreLocalTest {
         ApplicationContext applicationContext = new ApplicationContext();
         applicationContext.registerController(EchoController.class);
         ApplicationRunner applicationRunner = new ApplicationRunner(applicationContext);
-        applicationRunner.run().onSuccess(vertx -> {
-            deployVerticle(vertx, new TestVerticle());
-        });
+        applicationRunner.run();
+        deployVerticle(applicationContext.getVertx(), new TestVerticle());
     }
 }

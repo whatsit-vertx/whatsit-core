@@ -30,7 +30,7 @@ public class HealthController extends BaseController {
                 , Health.builder()
                         .isHealth(isHealth())
                         .name(getApplicationContext().getApplicationConfiguration().getName())
-                        .port(getApplicationContext().getApplicationConfiguration().getPort())
+                        .port(getApplicationContext().getPort())
                         .startTime(new Date(ManagementFactory.getRuntimeMXBean().getStartTime()).toString())
                         .upTime(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime())
                         .dependency(getApplicationContext().getHealthDependency())
