@@ -16,7 +16,7 @@ The whatsit-core library provides the following features:
 - Application startup
 1. Setting the environment variable, specify the config file for current env.
 ```shell
-java -Dconfig.file=local.conf -jar xxxx.jar
+java -Dconfig.resource=local.conf -jar xxxx.jar
 ```
 2. Init the Application Context
 3. Init the Initializer and pass your Controllers into it.
