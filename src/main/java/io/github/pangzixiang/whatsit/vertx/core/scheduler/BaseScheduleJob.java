@@ -55,14 +55,9 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
                     long period;
                     long delay;
                     if (StringUtils.isNotBlank(key)) {
-                        try {
-                            Config config = getApplicationContext().getApplicationConfiguration().getConfig(key);
-                            period = config.getLong(PERIOD_KEY);
-                            delay = config.getLong(DELAY_KEY);
-                        } catch (ConfigException e) {
-                            period = schedule.periodInMillis();
-                            delay = schedule.delayInMillis();
-                        }
+                        Config config = getApplicationContext().getApplicationConfiguration().getConfig(key);
+                        period = config.getLong(PERIOD_KEY);
+                        delay = config.getLong(DELAY_KEY);
                     } else {
                         period = schedule.periodInMillis();
                         delay = schedule.delayInMillis();
@@ -71,10 +66,9 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
                     if (delay > 0) {
                         if (period > 0) {
                             log.info("register schedule job {} with Settings [period: {}, delay: {}]", this.getClass().getSimpleName(), period, delay);
-                            long finalPeriod = period;
                             getVertx().setTimer(delay, h1 -> {
                                 execute();
-                                getVertx().setPeriodic(finalPeriod, h2 -> execute());
+                                getVertx().setPeriodic(period, h2 -> execute());
                             });
                         } else {
                             log.info("register schedule job {} with Settings [delay: {}]", this.getClass().getSimpleName(), delay);

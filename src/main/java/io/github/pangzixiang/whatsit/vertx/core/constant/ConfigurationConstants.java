@@ -5,7 +5,7 @@ public class ConfigurationConstants {
         super();
     }
 
-    public static final String ENV = "whatsit.env";
+    public static final String CONFIG_FILE = "config.resource";
 
     public static final String PORT = "app.port";
 
@@ -56,30 +56,4 @@ public class ConfigurationConstants {
     public static final String CUSTOM_CACHE_ENABLE = "enable";
 
     public static final String CACHE_AUTO_CREATION = "cache.autoCreation";
-
-    public static class DEFAULT {
-        public static final String LOCAL = "local";
-
-        public static final int PORT = 0;
-
-        public static final String NAME = "whatsit-service";
-
-        public static final int WORKER_POOL_SIZE = 4;
-
-        public static final int BLOCKING_POOL_SIZE = 4;
-
-        public static final int EVENT_LOOP_POOL_SIZE = 2;
-
-        public static final String HA_GROUP_NAME = "whatsit-default";
-
-        public static final int DATABASE_MAX_POOL_SIZE = 1;
-
-        public static final int DATABASE_CONNECTION_TIMEOUT = 30;
-
-        public static final int DATABASE_IDLE_TIMEOUT = 120;
-
-        public static final int DATABASE_EVENT_LOOP_SIZE = 1;
-
-        public static final String DATABASE_FLYWAY_LOCATION = "flyway/migration";
-    }
 }

@@ -54,8 +54,7 @@ public class ServerStartupVerticle extends CoreVerticle {
 
                             getApplicationContext().setPort(success.actualPort());
 
-                            log.info("[{}] HTTP Server for Service [{}] started at port [{}] successfully! -> [{} ms]"
-                                    , getApplicationContext().getApplicationConfiguration().getEnv().toUpperCase()
+                            log.info("HTTP Server for Service [{}] started at port [{}] successfully! -> [{} ms]"
                                     , getApplicationContext().getApplicationConfiguration().getName().toUpperCase()
                                     , success.actualPort()
                                     , System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());

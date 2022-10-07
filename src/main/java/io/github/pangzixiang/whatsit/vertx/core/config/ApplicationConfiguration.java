@@ -23,7 +23,8 @@ public class ApplicationConfiguration {
     private final Config config;
 
     public ApplicationConfiguration() {
-        this.config = ConfigFactory.load(getEnv());
+        log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElse(getConfigFile(), "DEFAULT"));
+        this.config = ConfigFactory.load();
     }
 
     public Object getValue(String key) {
@@ -51,37 +52,30 @@ public class ApplicationConfiguration {
         return this.config.getConfig(key);
     }
 
-    public String getEnv() {
-        return Objects.requireNonNullElse(System.getProperty(ConfigurationConstants.ENV)
-                , ConfigurationConstants.DEFAULT.LOCAL);
+    public String getConfigFile() {
+        return System.getProperty(ConfigurationConstants.CONFIG_FILE);
     }
 
     public Integer getPort() {
-        return Objects.requireNonNullElse(getInteger(ConfigurationConstants.PORT)
-                , ConfigurationConstants.DEFAULT.PORT);
+        return getInteger(ConfigurationConstants.PORT);
     }
 
     public String getName() {
-        return Objects.requireNonNullElse(getString(ConfigurationConstants.NAME)
-                , ConfigurationConstants.DEFAULT.NAME);
+        return getString(ConfigurationConstants.NAME);
     }
 
     public VertxOptions getVertxOptions() {
         VertxOptions options = new VertxOptions();
 
-        options.setWorkerPoolSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.WORKER_POOL_SIZE)
-                , ConfigurationConstants.DEFAULT.WORKER_POOL_SIZE));
+        options.setWorkerPoolSize(getInteger(ConfigurationConstants.WORKER_POOL_SIZE));
 
-        options.setInternalBlockingPoolSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.BLOCKING_POOL_SIZE)
-                , ConfigurationConstants.DEFAULT.BLOCKING_POOL_SIZE));
+        options.setInternalBlockingPoolSize(getInteger(ConfigurationConstants.BLOCKING_POOL_SIZE));
 
-        options.setEventLoopPoolSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.EVENT_LOOP_POOL_SIZE)
-                , ConfigurationConstants.DEFAULT.EVENT_LOOP_POOL_SIZE));
+        options.setEventLoopPoolSize(getInteger(ConfigurationConstants.EVENT_LOOP_POOL_SIZE));
 
         options.setHAEnabled(getBoolean(ConfigurationConstants.HA_ENABLED) != null && getBoolean(ConfigurationConstants.HA_ENABLED));
 
-        options.setHAGroup(Objects.requireNonNullElse(getString(ConfigurationConstants.HA_GROUP)
-                , ConfigurationConstants.DEFAULT.HA_GROUP_NAME));
+        options.setHAGroup(getString(ConfigurationConstants.HA_GROUP));
 
         return options;
     }
@@ -96,26 +90,21 @@ public class ApplicationConfiguration {
     }
 
     public String flywayLocation() {
-        return Objects.requireNonNullElse(getString(ConfigurationConstants.DATABASE_FLYWAY_LOCATION)
-                , ConfigurationConstants.DEFAULT.DATABASE_FLYWAY_LOCATION);
+        return getString(ConfigurationConstants.DATABASE_FLYWAY_LOCATION);
     }
 
     public PoolOptions getJDBCPoolOptions() {
         PoolOptions poolOptions = new PoolOptions();
 
-        poolOptions.setMaxSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_MAX_POOL_SIZE)
-                , ConfigurationConstants.DEFAULT.DATABASE_MAX_POOL_SIZE));
+        poolOptions.setMaxSize(getInteger(ConfigurationConstants.DATABASE_MAX_POOL_SIZE));
 
-        poolOptions.setConnectionTimeout(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_CONNECTION_TIMEOUT)
-                , ConfigurationConstants.DEFAULT.DATABASE_CONNECTION_TIMEOUT));
+        poolOptions.setConnectionTimeout(getInteger(ConfigurationConstants.DATABASE_CONNECTION_TIMEOUT));
         poolOptions.setConnectionTimeoutUnit(TimeUnit.SECONDS);
 
-        poolOptions.setIdleTimeout(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_IDLE_TIMEOUT)
-                , ConfigurationConstants.DEFAULT.DATABASE_IDLE_TIMEOUT));
+        poolOptions.setIdleTimeout(getInteger(ConfigurationConstants.DATABASE_IDLE_TIMEOUT));
         poolOptions.setIdleTimeoutUnit(TimeUnit.SECONDS);
 
-        poolOptions.setEventLoopSize(Objects.requireNonNullElse(getInteger(ConfigurationConstants.DATABASE_EVENT_LOOP_SIZE)
-                , ConfigurationConstants.DEFAULT.DATABASE_EVENT_LOOP_SIZE));
+        poolOptions.setEventLoopSize(getInteger(ConfigurationConstants.DATABASE_EVENT_LOOP_SIZE));
 
         poolOptions.setShared(true);
 

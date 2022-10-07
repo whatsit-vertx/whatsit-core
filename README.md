@@ -14,7 +14,10 @@
 The whatsit-core library provides the following features:
 
 - Application startup
-1. Setting the environment variable, specify current env.
+1. Setting the environment variable, specify the config file for current env.
+```shell
+java -Dconfig.resource=local.conf -jar xxxx.jar
+```
 2. Init the Application Context
 3. Init the Initializer and pass your Controllers into it.
 4. Finally, run the application.
@@ -25,7 +28,6 @@ import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 
 public class RunWhatsitCoreLocalTest {
     public static void main(String[] args) {
-        System.setProperty("whatsit.env", "local");
         ApplicationContext applicationContext = new ApplicationContext();
         applicationContext.registerController(SomeController.class);
         ApplicationRunner applicationRunner = new ApplicationRunner(applicationContext);
