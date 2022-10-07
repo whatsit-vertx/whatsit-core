@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -22,6 +23,7 @@ public class ApplicationConfiguration {
     private final Config config;
 
     public ApplicationConfiguration() {
+        log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElse(getConfigFile(), "DEFAULT"));
         this.config = ConfigFactory.load();
     }
 
@@ -50,8 +52,8 @@ public class ApplicationConfiguration {
         return this.config.getConfig(key);
     }
 
-    public String getEnv() {
-        return System.getProperty(ConfigurationConstants.ENV);
+    public String getConfigFile() {
+        return System.getProperty(ConfigurationConstants.CONFIG_FILE);
     }
 
     public Integer getPort() {
