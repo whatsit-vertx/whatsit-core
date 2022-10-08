@@ -1,4 +1,4 @@
-package io.github.pangzixiang.whatsit.vertx.core.local.Controller;
+package io.github.pangzixiang.whatsit.vertx.core.local.controller;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;

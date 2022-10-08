@@ -6,6 +6,7 @@ import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.controller.BaseController;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
+import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
 import io.vertx.core.Vertx;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.Getter;
@@ -45,6 +46,9 @@ public class ApplicationContext {
 
     private final ConcurrentMap<String, Cache<?, ?>> cacheMap;
 
+    @Getter
+    private final List<Class<? extends AbstractWebSocketController>> websocketControllers = new ArrayList<>();
+
     public ApplicationContext() {
         this.applicationConfiguration = new ApplicationConfiguration();
         this.healthDependency = new HealthDependency(getApplicationConfiguration());
@@ -58,6 +62,11 @@ public class ApplicationContext {
     @SafeVarargs
     public final void registerController(Class<? extends BaseController>... controller) {
         this.controllers.addAll(Arrays.asList(controller));
+    }
+
+    @SafeVarargs
+    public final void registerWebSocketController(Class<? extends AbstractWebSocketController> ... controller) {
+        this.websocketControllers.addAll(Arrays.asList(controller));
     }
 
     public Cache<?, ?> getCache(String cacheName) {

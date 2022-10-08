@@ -4,6 +4,7 @@ import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.filter.HttpFilter;
 import io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants;
+import io.github.pangzixiang.whatsit.vertx.core.websocket.handler.WebSocketHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
@@ -45,10 +46,14 @@ public class ServerStartupVerticle extends CoreVerticle {
         if ((Boolean) message.body()) {
             Router router = registerRouter();
 
+            WebSocketHandler webSocketHandler = WebSocketHandler.create(getApplicationContext(), getVertx());
+            getApplicationContext().getWebsocketControllers().forEach(webSocketHandler::registerController);
+
             getVertx().executeBlocking(promise -> {
                 log.info("Starting HTTP Server...");
                 getVertx().createHttpServer()
                         .requestHandler(router)
+                        .webSocketHandler(webSocketHandler)
                         .listen(getApplicationContext().getApplicationConfiguration().getPort())
                         .onSuccess(success -> {
 
