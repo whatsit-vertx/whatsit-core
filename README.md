@@ -206,6 +206,49 @@ schedule: {
 }
 ```
 
+- WebSocket
+1. create a controller class to extend AbstractWebSocketController and add @WebSocketAnnotation to the class
+```java
+@Slf4j
+@WebSocketAnnotation(path = "/ws")
+public class TestWebSocketController extends AbstractWebSocketController {
+    public TestWebSocketController(ApplicationContext applicationContext, Vertx vertx) {
+        super(applicationContext, vertx);
+    }
+
+    @Override
+    public void startConnect(ServerWebSocket serverWebSocket) {
+        log.info(serverWebSocket.binaryHandlerID());
+    }
+
+    @Override
+    public Handler<WebSocketFrame> onConnect(ServerWebSocket serverWebSocket) {
+        return webSocketFrame -> {
+            log.info(webSocketFrame.textData());
+            serverWebSocket.writeTextMessage("ok");
+        };
+    }
+
+    @Override
+    public Handler<Void> closeConnect(ServerWebSocket serverWebSocket) {
+        return v -> {
+            log.info("Closed");
+        };
+    }
+}
+```
+2. register the controller class to ApplicationContext
+```java
+public class RunWhatsitCoreLocalTest {
+    public static void main(String[] args) {
+        ApplicationContext applicationContext = new ApplicationContext();
+        applicationContext.registerWebSocketController(TestWebSocketController.class);
+        ApplicationRunner applicationRunner = new ApplicationRunner(applicationContext);
+        applicationRunner.run();
+    }
+}
+```
+
 ### Upcoming feature:
 - [Swagger](https://github.com/swagger-api/swagger-ui) Integration (ongoing)
 - [Caffeine](https://github.com/ben-manes/caffeine) Cache Integration (done)
