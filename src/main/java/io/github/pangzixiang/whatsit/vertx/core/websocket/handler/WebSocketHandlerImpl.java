@@ -30,9 +30,11 @@ public class WebSocketHandlerImpl implements WebSocketHandler{
         String path = serverWebSocket.path();
         if (controllerConcurrentMap.containsKey(path)) {
             AbstractWebSocketController abstractWebSocketController = controllerConcurrentMap.get(serverWebSocket.path());
-            abstractWebSocketController.startConnect(serverWebSocket);
-            serverWebSocket.frameHandler(abstractWebSocketController.onConnect(serverWebSocket));
             serverWebSocket.closeHandler(abstractWebSocketController.closeConnect(serverWebSocket));
+            abstractWebSocketController.startConnect(serverWebSocket);
+            if (!serverWebSocket.isClosed()) {
+                serverWebSocket.frameHandler(abstractWebSocketController.onConnect(serverWebSocket));
+            }
         } else {
             log.warn("Reject websocket connection for Invalid Path [{}]", path);
             serverWebSocket.reject();
