@@ -10,8 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HealthCheckScheduleJob extends BaseScheduleJob{
 
+    private final String SQL;
+
     public HealthCheckScheduleJob(ApplicationContext applicationContext) {
         super(applicationContext);
+        SQL = applicationContext.getApplicationConfiguration().getHealthCheckSql();
     }
 
     @Override
@@ -20,7 +23,7 @@ public class HealthCheckScheduleJob extends BaseScheduleJob{
         log.debug("Starting to check the Database Health!");
         JDBCPool jdbcPool = getApplicationContext().getJdbcPool();
         jdbcPool
-                .preparedQuery("select 1 from dual")
+                .preparedQuery(SQL)
                 .execute()
                 .onComplete(rowSetAsyncResult -> {
                    if (rowSetAsyncResult.succeeded()) {

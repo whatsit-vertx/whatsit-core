@@ -16,13 +16,14 @@ import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deplo
 @Slf4j
 public class DatabaseConnectionVerticle extends CoreVerticle {
 
-    public static final String VERIFICATION_SQL = "select 1 from dual";
+    private final String VERIFICATION_SQL;
 
     private final CircuitBreaker circuitBreaker;
 
     public DatabaseConnectionVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
         this.circuitBreaker = createCircuitBreaker(applicationContext.getVertx());
+        VERIFICATION_SQL = applicationContext.getApplicationConfiguration().getHealthCheckSql();
     }
 
     @Override
