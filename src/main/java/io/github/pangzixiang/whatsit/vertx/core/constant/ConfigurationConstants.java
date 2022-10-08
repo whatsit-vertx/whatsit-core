@@ -41,6 +41,8 @@ public class ConfigurationConstants {
 
     public static final String DATABASE_FLYWAY_LOCATION = "database.flyway.location";
 
+    public static final String DATABASE_HEALTH_CHECK_SQL = "database.healthCheckSql";
+
     public static final String CACHE_ENABLE = "cache.enable";
 
     public static final String CACHE_CUSTOM = "cache.custom";

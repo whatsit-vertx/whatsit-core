@@ -84,6 +84,10 @@ public class ApplicationConfiguration {
         return getBoolean(ConfigurationConstants.DATABASE_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_ENABLE);
     }
 
+    public String getHealthCheckSql() {
+        return getString(ConfigurationConstants.DATABASE_HEALTH_CHECK_SQL);
+    }
+
     public Boolean isFlywayMigrate() {
         return getBoolean(ConfigurationConstants.DATABASE_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_ENABLE)
                 && getBoolean(ConfigurationConstants.DATABASE_FLYWAY_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_FLYWAY_ENABLE);

@@ -26,7 +26,7 @@ public class FlywayMigrateVerticle extends CoreVerticle{
         log.debug("Starting to migrate the database...");
         JDBCConnectOptions jdbcConnectOptions = getApplicationContext().getApplicationConfiguration().getJDBCConnectOptions();
         Flyway flyway = Flyway.configure()
-                .initSql(DatabaseConnectionVerticle.VERIFICATION_SQL)
+                .initSql(getApplicationContext().getApplicationConfiguration().getHealthCheckSql())
                 .dataSource(jdbcConnectOptions.getJdbcUrl(), jdbcConnectOptions.getUser(), jdbcConnectOptions.getPassword())
                 .encoding(StandardCharsets.UTF_8)
                 .connectRetries(3)
