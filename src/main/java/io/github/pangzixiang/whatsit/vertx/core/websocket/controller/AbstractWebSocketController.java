@@ -30,7 +30,7 @@ public abstract class AbstractWebSocketController {
      * perform action during the connection
      *
      * @param serverWebSocket serverWebSocket
-     * @return Handler<WebSocketFrame>
+     * @return WebSocketFrame
      */
     public abstract Handler<WebSocketFrame> onConnect(ServerWebSocket serverWebSocket);
 
@@ -39,7 +39,7 @@ public abstract class AbstractWebSocketController {
      * perform action when connection close
      *
      * @param serverWebSocket serverWebSocket
-     * @return Handler<Void>
+     * @return Void
      */
     public abstract Handler<Void> closeConnect(ServerWebSocket serverWebSocket);
 }
