@@ -9,6 +9,12 @@ import io.github.pangzixiang.whatsit.vertx.core.local.websocket.TestWebSocketCon
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
 public class RunWhatsitCoreLocalTest {
+    /**
+     * -Dconfig.resource=local.conf
+     * -Dcom.sun.management.jmxremote.port=8088
+     * -Dcom.sun.management.jmxremote.authenticate=false
+     * -Dcom.sun.management.jmxremote.ssl=false
+     */
     public static void main(String[] args) {
         ApplicationContext applicationContext = new ApplicationContext();
         applicationContext.registerController(EchoController.class);

@@ -4,9 +4,8 @@ import com.typesafe.config.*;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants;
 import io.vertx.core.VertxOptions;
+import io.vertx.ext.dropwizard.DropwizardMetricsOptions;
 import io.vertx.jdbcclient.JDBCConnectOptions;
-import io.vertx.micrometer.MicrometerMetricsOptions;
-import io.vertx.micrometer.VertxJmxMetricsOptions;
 import io.vertx.sqlclient.PoolOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,8 @@ public class ApplicationConfiguration {
     private final Config config;
 
     public ApplicationConfiguration() {
-        log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElse(getConfigFile(), "DEFAULT"));
+        log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElseGet(getConfigResource(),
+                () -> Objects.requireNonNullElse(getConfigFile(), "reference.conf")));
         this.config = ConfigFactory.load();
     }
 
@@ -58,6 +58,10 @@ public class ApplicationConfiguration {
         return System.getProperty(ConfigurationConstants.CONFIG_FILE);
     }
 
+    public String getConfigResource() {
+        return System.getProperty(ConfigurationConstants.CONFIG_RESOURCE);
+    }
+
     public Integer getPort() {
         return getInteger(ConfigurationConstants.PORT);
     }
@@ -82,13 +86,9 @@ public class ApplicationConfiguration {
         if (getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE) != null && getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE)) {
             log.info("Enable JMX Metrics");
             options.setMetricsOptions(
-                    new MicrometerMetricsOptions()
-                            .setJmxMetricsOptions(
-                                    new VertxJmxMetricsOptions()
-                                            .setStep(getInteger(ConfigurationConstants.JMX_METRICS_PERIOD_IN_SECOND))
-                                            .setEnabled(true)
-                            )
-                            .setEnabled(true));
+                    new DropwizardMetricsOptions()
+                            .setJmxEnabled(true)
+            );
         }
 
         return options;

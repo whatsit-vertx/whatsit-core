@@ -49,7 +49,6 @@
         <maven-javadoc-plugin>3.4.1</maven-javadoc-plugin>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <multi-module-maven-release-plugin.version>3.6.1</multi-module-maven-release-plugin.version>
-        <micrometer.version>1.9.4</micrometer.version>
     </properties>
 
     <dependencyManagement>
@@ -94,12 +93,7 @@
 
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-micrometer-metrics</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-jmx</artifactId>
-            <version>${micrometer.version}</version>
+            <artifactId>vertx-dropwizard-metrics</artifactId>
         </dependency>
 
         <dependency>
