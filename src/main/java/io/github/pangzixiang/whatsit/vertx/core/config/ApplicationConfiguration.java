@@ -4,8 +4,9 @@ import com.typesafe.config.*;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants;
 import io.vertx.core.VertxOptions;
-import io.vertx.ext.dropwizard.DropwizardMetricsOptions;
 import io.vertx.jdbcclient.JDBCConnectOptions;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxJmxMetricsOptions;
 import io.vertx.sqlclient.PoolOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -86,8 +87,12 @@ public class ApplicationConfiguration {
         if (getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE) != null && getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE)) {
             log.info("Enable JMX Metrics");
             options.setMetricsOptions(
-                    new DropwizardMetricsOptions()
-                            .setJmxEnabled(true)
+                    new MicrometerMetricsOptions()
+                            .setJmxMetricsOptions(
+                                    new VertxJmxMetricsOptions()
+                                            .setEnabled(true)
+                                            .setStep(5))
+                            .setEnabled(true)
             );
         }
 
@@ -171,7 +176,7 @@ public class ApplicationConfiguration {
             log.warn("Custom Config NOT FOUND!");
             return result;
         }
-        for (Config c: configList) {
+        for (Config c : configList) {
             CacheConfiguration cacheConfiguration = new CacheConfiguration();
             String name;
             try {
@@ -196,7 +201,7 @@ public class ApplicationConfiguration {
             try {
                 int initSize = c.getInt(ConfigurationConstants.CUSTOM_CACHE_INIT_SIZE);
                 cacheConfiguration.setInitSize(initSize);
-            } catch (ConfigException e){
+            } catch (ConfigException e) {
                 log.warn("Empty Cache Config::initSize, hence set to DEFAULT");
             }
 
@@ -210,7 +215,7 @@ public class ApplicationConfiguration {
             try {
                 int expireTime = c.getInt(ConfigurationConstants.CUSTOM_CACHE_EXPIRE_TIME);
                 cacheConfiguration.setExpireTime(expireTime);
-            } catch (ConfigException e){
+            } catch (ConfigException e) {
                 log.warn("Empty Cache Config::expireTime, hence set to DEFAULT");
             }
 
