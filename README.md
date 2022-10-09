@@ -84,7 +84,7 @@ public void someEndpoint(RoutingContext routingContext) {
 ```
 
 - logging
-> we are using [logback](https://github.com/qos-ch/logback) to manage the log, if the 'whatsit.env' not contains 'local'
+> we are using [logback](https://github.com/qos-ch/logback) to manage the log, if the 'config.resource' or 'config.file' not contains 'local'
 > , then it will create the log file under the ./log folder,
 > for details, please refer to whatsit-core/src/main/resources/logback.xml
 
