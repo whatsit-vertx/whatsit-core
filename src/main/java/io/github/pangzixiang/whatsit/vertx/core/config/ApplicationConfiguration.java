@@ -91,7 +91,7 @@ public class ApplicationConfiguration {
                             .setJmxMetricsOptions(
                                     new VertxJmxMetricsOptions()
                                             .setEnabled(true)
-                                            .setStep(5))
+                                            .setStep(getInteger(ConfigurationConstants.JMX_METRICS_PERIOD_IN_SECOND)))
                             .setEnabled(true)
             );
         }
