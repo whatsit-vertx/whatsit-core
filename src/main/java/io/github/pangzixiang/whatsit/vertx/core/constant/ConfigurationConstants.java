@@ -5,7 +5,9 @@ public class ConfigurationConstants {
         super();
     }
 
-    public static final String CONFIG_FILE = "config.resource";
+    public static final String CONFIG_FILE = "config.file";
+
+    public static final String CONFIG_RESOURCE = "config.resource";
 
     public static final String PORT = "app.port";
 

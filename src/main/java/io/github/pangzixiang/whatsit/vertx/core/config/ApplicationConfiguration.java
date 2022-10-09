@@ -25,7 +25,8 @@ public class ApplicationConfiguration {
     private final Config config;
 
     public ApplicationConfiguration() {
-        log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElse(getConfigFile(), "DEFAULT"));
+        log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElseGet(getConfigResource(),
+                () -> Objects.requireNonNullElse(getConfigFile(), "reference.conf")));
         this.config = ConfigFactory.load();
     }
 
@@ -58,6 +59,10 @@ public class ApplicationConfiguration {
         return System.getProperty(ConfigurationConstants.CONFIG_FILE);
     }
 
+    public String getConfigResource() {
+        return System.getProperty(ConfigurationConstants.CONFIG_RESOURCE);
+    }
+
     public Integer getPort() {
         return getInteger(ConfigurationConstants.PORT);
     }
@@ -85,10 +90,10 @@ public class ApplicationConfiguration {
                     new MicrometerMetricsOptions()
                             .setJmxMetricsOptions(
                                     new VertxJmxMetricsOptions()
-                                            .setStep(getInteger(ConfigurationConstants.JMX_METRICS_PERIOD_IN_SECOND))
                                             .setEnabled(true)
-                            )
-                            .setEnabled(true));
+                                            .setStep(getInteger(ConfigurationConstants.JMX_METRICS_PERIOD_IN_SECOND)))
+                            .setEnabled(true)
+            );
         }
 
         return options;
@@ -171,7 +176,7 @@ public class ApplicationConfiguration {
             log.warn("Custom Config NOT FOUND!");
             return result;
         }
-        for (Config c: configList) {
+        for (Config c : configList) {
             CacheConfiguration cacheConfiguration = new CacheConfiguration();
             String name;
             try {
@@ -196,7 +201,7 @@ public class ApplicationConfiguration {
             try {
                 int initSize = c.getInt(ConfigurationConstants.CUSTOM_CACHE_INIT_SIZE);
                 cacheConfiguration.setInitSize(initSize);
-            } catch (ConfigException e){
+            } catch (ConfigException e) {
                 log.warn("Empty Cache Config::initSize, hence set to DEFAULT");
             }
 
@@ -210,7 +215,7 @@ public class ApplicationConfiguration {
             try {
                 int expireTime = c.getInt(ConfigurationConstants.CUSTOM_CACHE_EXPIRE_TIME);
                 cacheConfiguration.setExpireTime(expireTime);
-            } catch (ConfigException e){
+            } catch (ConfigException e) {
                 log.warn("Empty Cache Config::expireTime, hence set to DEFAULT");
             }
 
