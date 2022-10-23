@@ -3,12 +3,16 @@ package io.github.pangzixiang.whatsit.vertx.core.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
+import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +38,7 @@ public class CoreUtils {
         return objectMapper.writeValueAsString(o);
     }
 
-    public static <T> T StringToObject(String json, Class<T> clz) {
+    public static <T> T stringToObject(String json, Class<T> clz) {
         return objectMapper.convertValue(json, clz);
     }
 
@@ -72,5 +76,24 @@ public class CoreUtils {
 
     public static CircuitBreaker createCircuitBreaker(Vertx vertx) {
         return createCircuitBreaker(UUID.randomUUID().toString(), vertx);
+    }
+
+    public static Object invokeMethod(Method method, Object instance, Object ... args) {
+        try {
+            return method.invoke(instance, args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            log.error("Failed to invoke method [{}]", method.getName());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object createInstance(Class<?> clz, Object...args) {
+        try {
+            Constructor<?> constructor = clz.getConstructor(ApplicationContext.class);
+            return constructor.newInstance(args);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            log.error("Failed to init Instance for class[{}]", clz.getSimpleName());
+            throw new RuntimeException(e);
+        }
     }
 }

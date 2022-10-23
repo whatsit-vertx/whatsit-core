@@ -4,9 +4,11 @@ import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.filter.HttpFilter;
 import io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants;
+import io.github.pangzixiang.whatsit.vertx.core.model.RouteHandlerRequest;
+import io.github.pangzixiang.whatsit.vertx.core.model.RouteHandlerRequestCodec;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.handler.WebSocketHandler;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpMethod;
@@ -17,18 +19,24 @@ import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.refactorControllerPath;
+import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.*;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
 @Slf4j
 public class ServerStartupVerticle extends CoreVerticle {
+
+    private final DeploymentOptions options = new DeploymentOptions()
+            .setWorker(true)
+            .setWorkerPoolSize(
+                    getApplicationContext()
+                            .getApplicationConfiguration()
+                            .getVertxOptions()
+                            .getWorkerPoolSize());
 
     public ServerStartupVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
@@ -37,6 +45,10 @@ public class ServerStartupVerticle extends CoreVerticle {
     @Override
     public void start() throws Exception {
         super.start();
+        getVertx()
+                .eventBus()
+                .unregisterDefaultCodec(RouteHandlerRequest.class)
+                .registerDefaultCodec(RouteHandlerRequest.class, new RouteHandlerRequestCodec(RouteHandlerRequest.class));
         getVertx().eventBus().consumer(CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID).handler(this::start)
                 .exceptionHandler(exception -> log.error(exception.getMessage(), exception))
                 .completionHandler(complete -> log.debug("EventBus Consumer [{}] registered", CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID));
@@ -67,7 +79,7 @@ public class ServerStartupVerticle extends CoreVerticle {
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                                 success.close();
                                 log.info("Shutdown HTTP Server, Application total runtime -> {}s"
-                                        , (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime())/1000);
+                                        , (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000);
                             }));
 
                             log.debug("added shutdown hook for HTTP Server");
@@ -93,7 +105,7 @@ public class ServerStartupVerticle extends CoreVerticle {
         router.route().handler(BodyHandler.create());
         getApplicationContext().getControllers().forEach(clz -> {
             Method[] endpoints = clz.getMethods();
-            Object controllerInstance = createInstance(clz);
+            Object controllerInstance = createInstance(clz, getApplicationContext());
             deployVerticle(getVertx(), (AbstractVerticle) controllerInstance)
                     .onFailure(failure -> {
                         log.error(failure.getMessage(), failure);
@@ -125,14 +137,14 @@ public class ServerStartupVerticle extends CoreVerticle {
                                             try {
                                                 Method doFilter = httpFilter.getMethod("doFilter", RoutingContext.class);
                                                 if (!Modifier.isAbstract(doFilter.getModifiers())) {
-                                                    Object filterInstance = createInstance(httpFilter);
+                                                    Object filterInstance = createInstance(httpFilter, getApplicationContext());
                                                     deployVerticle(getVertx(), (AbstractVerticle) filterInstance)
                                                             .onFailure(failure -> {
                                                                 log.error(failure.getMessage(), failure);
                                                                 System.exit(-1);
                                                             });
                                                     doFilter.setAccessible(true);
-                                                    route.handler(filter -> invokeMethod(filter, doFilter, filterInstance));
+                                                    route.handler(filter -> invokeMethod(doFilter, filterInstance, filter));
                                                 } else {
                                                     log.warn("Skip Invalid Filter [{}]!", httpFilter.getSimpleName());
                                                 }
@@ -150,7 +162,14 @@ public class ServerStartupVerticle extends CoreVerticle {
                             if (Handler.class.isAssignableFrom(m2.getReturnType())) {
                                 route.handler((Handler<RoutingContext>) invokeMethod(m2, controllerInstance));
                             } else {
-                                route.handler(h1 -> invokeMethod(h1, m2, controllerInstance));
+                                deployVerticle(getVertx(), new RouteHandlerVerticle(getApplicationContext(), url, m2, controllerInstance), options)
+                                        .onSuccess(s -> route.handler(h1 -> getVertx()
+                                                .eventBus()
+                                                .publish(url, new RouteHandlerRequest(h1))))
+                                        .onFailure(throwable -> {
+                                            log.error("Failed to register endpoint [{}]", url, throwable);
+                                            System.exit(-1);
+                                        });
                             }
                         } catch (Exception e) {
                             log.error("Failed to register router!", e);
@@ -159,36 +178,5 @@ public class ServerStartupVerticle extends CoreVerticle {
                     });
         });
         return router;
-    }
-
-    private void invokeMethod(RoutingContext routingContext, Method method, Object instance) {
-        try {
-            method.invoke(instance, routingContext);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            RestController restController = method.getAnnotation(RestController.class);
-            log.error("Failed to invoke method [{}] for Endpoint: [{}]", method.getName(), restController.path());
-            routingContext.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).end(e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Object invokeMethod(Method method, Object instance) {
-        try {
-            return method.invoke(instance);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            RestController restController = method.getAnnotation(RestController.class);
-            log.error("Failed to invoke method [{}] for Endpoint: [{}]", method.getName(), restController.path());
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Object createInstance(Class<? extends AbstractVerticle> clz) {
-        try {
-            Constructor<? extends AbstractVerticle> constructor = clz.getConstructor(ApplicationContext.class);
-            return constructor.newInstance(getApplicationContext());
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            log.error("Failed to init Instance for class[{}]", clz.getSimpleName());
-            throw new RuntimeException(e);
-        }
     }
 }
