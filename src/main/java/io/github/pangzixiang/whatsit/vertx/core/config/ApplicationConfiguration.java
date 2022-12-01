@@ -5,8 +5,6 @@ import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants;
 import io.vertx.core.VertxOptions;
 import io.vertx.jdbcclient.JDBCConnectOptions;
-import io.vertx.micrometer.MicrometerMetricsOptions;
-import io.vertx.micrometer.VertxJmxMetricsOptions;
 import io.vertx.sqlclient.PoolOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -83,18 +81,6 @@ public class ApplicationConfiguration {
         options.setHAEnabled(getBoolean(ConfigurationConstants.HA_ENABLED) != null && getBoolean(ConfigurationConstants.HA_ENABLED));
 
         options.setHAGroup(getString(ConfigurationConstants.HA_GROUP));
-
-        if (getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE) != null && getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE)) {
-            log.info("Enable JMX Metrics");
-            options.setMetricsOptions(
-                    new MicrometerMetricsOptions()
-                            .setJmxMetricsOptions(
-                                    new VertxJmxMetricsOptions()
-                                            .setEnabled(true)
-                                            .setStep(getInteger(ConfigurationConstants.JMX_METRICS_PERIOD_IN_SECOND)))
-                            .setEnabled(true)
-            );
-        }
 
         return options;
     }

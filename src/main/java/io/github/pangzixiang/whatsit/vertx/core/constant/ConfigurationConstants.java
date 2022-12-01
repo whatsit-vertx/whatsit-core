@@ -23,10 +23,6 @@ public class ConfigurationConstants {
 
     public static final String HA_GROUP = "vertx.ha-group";
 
-    public static final String JMX_METRICS_ENABLE = "vertx.jmxMetrics.enable";
-
-    public static final String JMX_METRICS_PERIOD_IN_SECOND = "vertx.jmxMetrics.periodInSec";
-
     public static final String DATABASE_ENABLE = "database.enable";
 
     public static final String DATABASE_URL = "database.url";
