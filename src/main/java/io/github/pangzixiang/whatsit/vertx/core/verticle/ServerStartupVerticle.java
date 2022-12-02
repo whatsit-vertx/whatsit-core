@@ -63,7 +63,7 @@ public class ServerStartupVerticle extends CoreVerticle {
 
             getVertx().executeBlocking(promise -> {
                 log.info("Starting HTTP Server...");
-                getVertx().createHttpServer()
+                getVertx().createHttpServer(getApplicationContext().getApplicationConfiguration().getHttpServerOptions())
                         .requestHandler(router)
                         .webSocketHandler(webSocketHandler)
                         .listen(getApplicationContext().getApplicationConfiguration().getPort())
