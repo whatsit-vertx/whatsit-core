@@ -3,39 +3,21 @@ package io.github.pangzixiang.whatsit.vertx.core.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
-import static java.time.LocalDateTime.now;
-
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class HealthDependency {
-
-    private DatabaseHealth databaseHealth;
-
-    public HealthDependency(ApplicationConfiguration applicationConfiguration) {
-        if (applicationConfiguration.isDatabaseEnable()) {
-            this.databaseHealth = new DatabaseHealth(false);
-        }
-    }
-
-    @Getter
-    @Setter
-    public static class DatabaseHealth {
-        private Boolean isHealth;
-
-        @JsonSerialize(using = LocalDateTimeSerializer.class)
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private LocalDateTime lastUpdated;
-
-        public DatabaseHealth(Boolean isHealth) {
-            this.isHealth = isHealth;
-            this.lastUpdated = now(ZoneId.systemDefault());
-        }
-    }
+    private String name;
+    private boolean isHealth;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastUpdated;
 }

@@ -4,11 +4,11 @@ import com.typesafe.config.*;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.jdbcclient.JDBCConnectOptions;
-import io.vertx.micrometer.MicrometerMetricsOptions;
-import io.vertx.micrometer.VertxJmxMetricsOptions;
 import io.vertx.sqlclient.PoolOptions;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,6 +23,12 @@ public class ApplicationConfiguration {
 
     @Getter
     private final Config config;
+
+    @Setter
+    private VertxOptions vertxOptions;
+
+    @Setter
+    private HttpServerOptions httpServerOptions;
 
     public ApplicationConfiguration() {
         log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElseGet(getConfigResource(),
@@ -72,31 +78,29 @@ public class ApplicationConfiguration {
     }
 
     public VertxOptions getVertxOptions() {
-        VertxOptions options = new VertxOptions();
+        if (vertxOptions == null) {
+            vertxOptions = new VertxOptions();
 
-        options.setWorkerPoolSize(getInteger(ConfigurationConstants.WORKER_POOL_SIZE));
+            vertxOptions.setWorkerPoolSize(getInteger(ConfigurationConstants.WORKER_POOL_SIZE));
 
-        options.setInternalBlockingPoolSize(getInteger(ConfigurationConstants.BLOCKING_POOL_SIZE));
+            vertxOptions.setInternalBlockingPoolSize(getInteger(ConfigurationConstants.BLOCKING_POOL_SIZE));
 
-        options.setEventLoopPoolSize(getInteger(ConfigurationConstants.EVENT_LOOP_POOL_SIZE));
+            vertxOptions.setEventLoopPoolSize(getInteger(ConfigurationConstants.EVENT_LOOP_POOL_SIZE));
 
-        options.setHAEnabled(getBoolean(ConfigurationConstants.HA_ENABLED) != null && getBoolean(ConfigurationConstants.HA_ENABLED));
+            vertxOptions.setHAEnabled(getBoolean(ConfigurationConstants.HA_ENABLED) != null && getBoolean(ConfigurationConstants.HA_ENABLED));
 
-        options.setHAGroup(getString(ConfigurationConstants.HA_GROUP));
+            vertxOptions.setHAGroup(getString(ConfigurationConstants.HA_GROUP));
 
-        if (getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE) != null && getBoolean(ConfigurationConstants.JMX_METRICS_ENABLE)) {
-            log.info("Enable JMX Metrics");
-            options.setMetricsOptions(
-                    new MicrometerMetricsOptions()
-                            .setJmxMetricsOptions(
-                                    new VertxJmxMetricsOptions()
-                                            .setEnabled(true)
-                                            .setStep(getInteger(ConfigurationConstants.JMX_METRICS_PERIOD_IN_SECOND)))
-                            .setEnabled(true)
-            );
+            log.info("Init DEFAULT VertxOptions [{}]", vertxOptions);
         }
+        return vertxOptions;
+    }
 
-        return options;
+    public HttpServerOptions getHttpServerOptions() {
+        if (httpServerOptions == null) {
+            httpServerOptions = new HttpServerOptions();
+        }
+        return httpServerOptions;
     }
 
     public Boolean isDatabaseEnable() {

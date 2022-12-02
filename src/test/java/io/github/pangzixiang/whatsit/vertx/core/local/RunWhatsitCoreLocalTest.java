@@ -5,6 +5,7 @@ import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.local.controller.EchoController;
 import io.github.pangzixiang.whatsit.vertx.core.local.verticle.TestVerticle;
 import io.github.pangzixiang.whatsit.vertx.core.local.websocket.TestWebSocketController;
+import io.vertx.core.http.HttpServerOptions;
 
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
@@ -20,7 +21,7 @@ public class RunWhatsitCoreLocalTest {
         applicationContext.registerController(EchoController.class);
         applicationContext.registerWebSocketController(TestWebSocketController.class);
         ApplicationRunner applicationRunner = new ApplicationRunner(applicationContext);
-        applicationRunner.run();
+        applicationRunner.run(new HttpServerOptions().setLogActivity(true));
         deployVerticle(applicationContext.getVertx(), new TestVerticle());
     }
 }

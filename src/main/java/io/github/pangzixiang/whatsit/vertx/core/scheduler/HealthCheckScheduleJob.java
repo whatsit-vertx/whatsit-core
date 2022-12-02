@@ -7,6 +7,11 @@ import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static io.github.pangzixiang.whatsit.vertx.core.verticle.DatabaseConnectionVerticle.DATABASE_HEALTH_NAME;
+
 @Slf4j
 public class HealthCheckScheduleJob extends BaseScheduleJob{
 
@@ -18,7 +23,7 @@ public class HealthCheckScheduleJob extends BaseScheduleJob{
     }
 
     @Override
-    @Schedule(delayInMillis = 10_000, periodInMillis = 30_000, configKey = "schedule.healthCheck")
+    @Schedule(delayInMillis = 10_000, periodInMillis = 30_000, configKey = "database.healthCheck")
     public void execute() {
         log.debug("Starting to check the Database Health!");
         JDBCPool jdbcPool = getApplicationContext().getJdbcPool();
@@ -29,16 +34,29 @@ public class HealthCheckScheduleJob extends BaseScheduleJob{
                    if (rowSetAsyncResult.succeeded()) {
                        Row row = rowSetAsyncResult.result().iterator().next();
                        Integer result = row.getInteger(0);
+                       Optional<HealthDependency> databaseHealthOptional = getApplicationContext()
+                               .getHealthDependencies().stream()
+                               .filter(healthDependency -> healthDependency.getName().equals(DATABASE_HEALTH_NAME))
+                               .findFirst();
+                       boolean isHealth = false;
                        if (result.equals(1)) {
                            log.debug("Database Health Check Done!");
-                           HealthDependency.DatabaseHealth databaseHealth =
-                                   new HealthDependency.DatabaseHealth(true);
-                           getApplicationContext().getHealthDependency().setDatabaseHealth(databaseHealth);
+                           isHealth = true;
                        } else {
-                           HealthDependency.DatabaseHealth databaseHealth =
-                                   new HealthDependency.DatabaseHealth(false);
-                           getApplicationContext().getHealthDependency().setDatabaseHealth(databaseHealth);
                            log.error("Database Health Check Failed, Health Status updated to [FALSE]!");
+                       }
+                       if (databaseHealthOptional.isPresent()) {
+                           databaseHealthOptional.get().setHealth(isHealth);
+                           databaseHealthOptional.get().setLastUpdated(LocalDateTime.now());
+                       } else {
+                           HealthDependency databaseHealth = HealthDependency
+                                   .builder()
+                                   .isHealth(isHealth)
+                                   .name(DATABASE_HEALTH_NAME)
+                                   .lastUpdated(LocalDateTime.now())
+                                   .build();
+
+                           getApplicationContext().getHealthDependencies().add(databaseHealth);
                        }
                    }
                 });

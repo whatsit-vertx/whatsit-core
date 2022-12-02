@@ -4,6 +4,7 @@ import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.constant.HttpRequestMethod;
 import io.github.pangzixiang.whatsit.vertx.core.model.Health;
+import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
@@ -33,15 +34,11 @@ public class HealthController extends BaseController {
                         .port(getApplicationContext().getPort())
                         .startTime(new Date(ManagementFactory.getRuntimeMXBean().getStartTime()).toString())
                         .upTime(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime())
-                        .dependency(getApplicationContext().getHealthDependency())
+                        .dependencies(getApplicationContext().getHealthDependencies())
                         .build());
     }
 
     private boolean isHealth() {
-        if (getApplicationContext().getApplicationConfiguration().isDatabaseEnable()) {
-            return getApplicationContext().getHealthDependency().getDatabaseHealth().getIsHealth();
-        } else {
-            return true;
-        }
+        return getApplicationContext().getHealthDependencies().stream().allMatch(HealthDependency::isHealth);
     }
 }
