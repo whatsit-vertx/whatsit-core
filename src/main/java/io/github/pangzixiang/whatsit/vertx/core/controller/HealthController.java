@@ -12,9 +12,17 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.management.ManagementFactory;
 import java.util.Date;
 
+/**
+ * The type Health controller.
+ */
 @Slf4j
 public class HealthController extends BaseController {
 
+    /**
+     * Instantiates a new Health controller.
+     *
+     * @param applicationContext the application context
+     */
     public HealthController(ApplicationContext applicationContext) {
         super(applicationContext);
     }
@@ -24,6 +32,11 @@ public class HealthController extends BaseController {
         super.start();
     }
 
+    /**
+     * Health endpoint.
+     *
+     * @param routingContext the routing context
+     */
     @RestController(path = "/health", method = HttpRequestMethod.GET)
     public void healthEndpoint(RoutingContext routingContext) {
         sendJsonResponse(routingContext

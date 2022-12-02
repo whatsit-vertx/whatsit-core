@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The type Application configuration.
+ */
 @Slf4j
 public class ApplicationConfiguration {
 
@@ -30,12 +33,21 @@ public class ApplicationConfiguration {
     @Setter
     private HttpServerOptions httpServerOptions;
 
+    /**
+     * Instantiates a new Application configuration.
+     */
     public ApplicationConfiguration() {
         log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElseGet(getConfigResource(),
                 () -> Objects.requireNonNullElse(getConfigFile(), "reference.conf")));
         this.config = ConfigFactory.load();
     }
 
+    /**
+     * Gets value.
+     *
+     * @param key the key
+     * @return the value
+     */
     public Object getValue(String key) {
         try {
             return this.config.getValue(key).unwrapped();
@@ -45,38 +57,87 @@ public class ApplicationConfiguration {
         }
     }
 
+    /**
+     * Gets string.
+     *
+     * @param key the key
+     * @return the string
+     */
     public String getString(String key) {
         return (String) this.getValue(key);
     }
 
+    /**
+     * Gets integer.
+     *
+     * @param key the key
+     * @return the integer
+     */
     public Integer getInteger(String key) {
         return (Integer) this.getValue(key);
     }
 
+    /**
+     * Gets boolean.
+     *
+     * @param key the key
+     * @return the boolean
+     */
     public Boolean getBoolean(String key) {
         return (Boolean) this.getValue(key);
     }
 
+    /**
+     * Gets config.
+     *
+     * @param key the key
+     * @return the config
+     */
     public Config getConfig(String key) {
         return this.config.getConfig(key);
     }
 
+    /**
+     * Gets config file.
+     *
+     * @return the config file
+     */
     public String getConfigFile() {
         return System.getProperty(ConfigurationConstants.CONFIG_FILE);
     }
 
+    /**
+     * Gets config resource.
+     *
+     * @return the config resource
+     */
     public String getConfigResource() {
         return System.getProperty(ConfigurationConstants.CONFIG_RESOURCE);
     }
 
+    /**
+     * Gets port.
+     *
+     * @return the port
+     */
     public Integer getPort() {
         return getInteger(ConfigurationConstants.PORT);
     }
 
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
     public String getName() {
         return getString(ConfigurationConstants.NAME);
     }
 
+    /**
+     * Gets vertx options.
+     *
+     * @return the vertx options
+     */
     public VertxOptions getVertxOptions() {
         if (vertxOptions == null) {
             vertxOptions = new VertxOptions();
@@ -96,6 +157,11 @@ public class ApplicationConfiguration {
         return vertxOptions;
     }
 
+    /**
+     * Gets http server options.
+     *
+     * @return the http server options
+     */
     public HttpServerOptions getHttpServerOptions() {
         if (httpServerOptions == null) {
             httpServerOptions = new HttpServerOptions();
@@ -103,23 +169,48 @@ public class ApplicationConfiguration {
         return httpServerOptions;
     }
 
+    /**
+     * Is database enable boolean.
+     *
+     * @return the boolean
+     */
     public Boolean isDatabaseEnable() {
         return getBoolean(ConfigurationConstants.DATABASE_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_ENABLE);
     }
 
+    /**
+     * Gets health check sql.
+     *
+     * @return the health check sql
+     */
     public String getHealthCheckSql() {
         return getString(ConfigurationConstants.DATABASE_HEALTH_CHECK_SQL);
     }
 
+    /**
+     * Is flyway migrate boolean.
+     *
+     * @return the boolean
+     */
     public Boolean isFlywayMigrate() {
         return getBoolean(ConfigurationConstants.DATABASE_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_ENABLE)
                 && getBoolean(ConfigurationConstants.DATABASE_FLYWAY_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_FLYWAY_ENABLE);
     }
 
+    /**
+     * Flyway location string.
+     *
+     * @return the string
+     */
     public String flywayLocation() {
         return getString(ConfigurationConstants.DATABASE_FLYWAY_LOCATION);
     }
 
+    /**
+     * Gets jdbc pool options.
+     *
+     * @return the jdbc pool options
+     */
     public PoolOptions getJDBCPoolOptions() {
         PoolOptions poolOptions = new PoolOptions();
 
@@ -138,6 +229,11 @@ public class ApplicationConfiguration {
         return poolOptions;
     }
 
+    /**
+     * Gets jdbc connect options.
+     *
+     * @return the jdbc connect options
+     */
     public JDBCConnectOptions getJDBCConnectOptions() {
         String url = getString(ConfigurationConstants.DATABASE_URL);
         String user = getString(ConfigurationConstants.DATABASE_USER);
@@ -163,14 +259,29 @@ public class ApplicationConfiguration {
         return jdbcConnectOptions;
     }
 
+    /**
+     * Is cache enable boolean.
+     *
+     * @return the boolean
+     */
     public Boolean isCacheEnable() {
         return getBoolean(ConfigurationConstants.CACHE_ENABLE) != null && getBoolean(ConfigurationConstants.CACHE_ENABLE);
     }
 
+    /**
+     * Is cache auto creation boolean.
+     *
+     * @return the boolean
+     */
     public Boolean isCacheAutoCreation() {
         return getBoolean(ConfigurationConstants.CACHE_AUTO_CREATION) != null && getBoolean(ConfigurationConstants.CACHE_AUTO_CREATION);
     }
 
+    /**
+     * Gets custom cache.
+     *
+     * @return the custom cache
+     */
     public Map<String, CacheConfiguration> getCustomCache() {
         Map<String, CacheConfiguration> result = new HashMap<>();
         List<? extends Config> configList;

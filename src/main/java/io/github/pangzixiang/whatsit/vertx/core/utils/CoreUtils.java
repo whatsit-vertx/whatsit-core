@@ -17,6 +17,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The type Core utils.
+ */
 @Slf4j
 public class CoreUtils {
 
@@ -34,14 +37,36 @@ public class CoreUtils {
         objectMapper = new ObjectMapper();
     }
 
+    /**
+     * Object to string string.
+     *
+     * @param o the o
+     * @return the string
+     * @throws JsonProcessingException the json processing exception
+     */
     public static String objectToString(Object o) throws JsonProcessingException {
         return objectMapper.writeValueAsString(o);
     }
 
+    /**
+     * String to object t.
+     *
+     * @param <T>  the type parameter
+     * @param json the json
+     * @param clz  the clz
+     * @return the t
+     */
     public static <T> T stringToObject(String json, Class<T> clz) {
         return objectMapper.convertValue(json, clz);
     }
 
+    /**
+     * Refactor controller path string.
+     *
+     * @param path                     the path
+     * @param applicationConfiguration the application configuration
+     * @return the string
+     */
     public static String refactorControllerPath(String path, ApplicationConfiguration applicationConfiguration) {
         Matcher matcher = pattern.matcher(path);
         while (matcher.find()) {
@@ -60,6 +85,13 @@ public class CoreUtils {
         return path.replaceAll("/+", "/");
     }
 
+    /**
+     * Create circuit breaker circuit breaker.
+     *
+     * @param name  the name
+     * @param vertx the vertx
+     * @return the circuit breaker
+     */
     public static CircuitBreaker createCircuitBreaker(String name, Vertx vertx) {
         CircuitBreakerOptions options = new CircuitBreakerOptions();
         options.setMaxFailures(CIRCUIT_BREAKER_MAX_FAILURES);
@@ -74,10 +106,24 @@ public class CoreUtils {
         return circuitBreaker;
     }
 
+    /**
+     * Create circuit breaker circuit breaker.
+     *
+     * @param vertx the vertx
+     * @return the circuit breaker
+     */
     public static CircuitBreaker createCircuitBreaker(Vertx vertx) {
         return createCircuitBreaker(UUID.randomUUID().toString(), vertx);
     }
 
+    /**
+     * Invoke method object.
+     *
+     * @param method   the method
+     * @param instance the instance
+     * @param args     the args
+     * @return the object
+     */
     public static Object invokeMethod(Method method, Object instance, Object ... args) {
         try {
             return method.invoke(instance, args);
@@ -87,6 +133,13 @@ public class CoreUtils {
         }
     }
 
+    /**
+     * Create instance object.
+     *
+     * @param clz  the clz
+     * @param args the args
+     * @return the object
+     */
     public static Object createInstance(Class<?> clz, Object...args) {
         try {
             Constructor<?> constructor = clz.getConstructor(ApplicationContext.class);

@@ -19,17 +19,34 @@ import static io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleCons
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.objectToString;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
+/**
+ * To startup the Application
+ */
 @Slf4j
 public class ApplicationRunner {
 
+    /**
+     * Application Context
+     */
     private final ApplicationContext applicationContext;
 
+    /**
+     * Constructor for Application Runner
+     *
+     * @param applicationContext Application Context
+     */
     public ApplicationRunner(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         // add Core Controllers
         this.applicationContext.registerController(HealthController.class);
     }
 
+    /**
+     * to init the Vertx Instance
+     *
+     * @param vertxOptions VertxOptions
+     * @return Vertx instance
+     */
     private Vertx vertx(VertxOptions vertxOptions) {
         if (vertxOptions != null) {
             log.info("Use Custom VertxOptions to startup Vertx! [{}]", vertxOptions);
@@ -38,6 +55,11 @@ public class ApplicationRunner {
         return Vertx.vertx(applicationContext.getApplicationConfiguration().getVertxOptions());
     }
 
+    /**
+     * the method to bring up the application
+     *
+     * @param options VertxOptions/HttpServerOptions/null
+     */
     @SneakyThrows
     public void run(Object...options) {
         System.getProperties()

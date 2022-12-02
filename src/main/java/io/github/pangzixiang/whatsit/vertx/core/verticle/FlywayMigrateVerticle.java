@@ -9,9 +9,17 @@ import org.flywaydb.core.api.Location;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * The type Flyway migrate verticle.
+ */
 @Slf4j
 public class FlywayMigrateVerticle extends CoreVerticle{
 
+    /**
+     * Instantiates a new Flyway migrate verticle.
+     *
+     * @param applicationContext the application context
+     */
     public FlywayMigrateVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
     }

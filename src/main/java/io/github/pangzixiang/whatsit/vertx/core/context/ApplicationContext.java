@@ -18,36 +18,65 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * Application Context
+ */
 @Slf4j
 public class ApplicationContext {
 
+    /**
+     * Vertx Instance
+     */
     @Getter
     @Setter
     private Vertx vertx;
 
+    /**
+     * Server Port
+     */
     @Getter
     @Setter
     private int port;
 
+    /**
+     * Application Configuration
+     */
     @Getter
     private final ApplicationConfiguration applicationConfiguration;
 
+    /**
+     * JDBC pool
+     */
     @Getter
     @Setter
     private JDBCPool jdbcPool;
 
+    /**
+     * HealthDependencies
+     */
     @Getter
     private final List<HealthDependency> healthDependencies = new ArrayList<>();
 
+    /**
+     * Controllers
+     */
     @Getter
     private final List<Class<? extends BaseController>> controllers = new ArrayList<>();
 
+    /**
+     * Cache Map storing the Cache
+     */
     private final ConcurrentMap<String, Cache<?, ?>> cacheMap;
 
+    /**
+     * Websocket Controller
+     */
     @Getter
     private final List<Class<? extends AbstractWebSocketController>> websocketControllers = new ArrayList<>();
 
+    /**
+     * Constructor for ApplicationContext
+     */
     public ApplicationContext() {
         this.applicationConfiguration = new ApplicationConfiguration();
         if (this.applicationConfiguration.isCacheEnable()) {
@@ -57,16 +86,32 @@ public class ApplicationContext {
         }
     }
 
+    /**
+     * Method to register web controllers
+     *
+     * @param controller Class extends BaseController
+     */
     @SafeVarargs
     public final void registerController(Class<? extends BaseController>... controller) {
         this.controllers.addAll(Arrays.asList(controller));
     }
 
+    /**
+     * Method to register websocket controllers
+     *
+     * @param controller Class extends AbstractWebSocketController
+     */
     @SafeVarargs
     public final void registerWebSocketController(Class<? extends AbstractWebSocketController> ... controller) {
         this.websocketControllers.addAll(Arrays.asList(controller));
     }
 
+    /**
+     * Method to get Cache from Cache Map
+     *
+     * @param cacheName Cache Name
+     * @return Cache cache
+     */
     public Cache<?, ?> getCache(String cacheName) {
         Cache<?, ?> cache = this.cacheMap.get(cacheName);
         if (Objects.isNull(cache)) {
@@ -88,6 +133,11 @@ public class ApplicationContext {
         return cache;
     }
 
+    /**
+     * Method to init Cache Map
+     *
+     * @return Cache Map
+     */
     private ConcurrentMap<String, Cache<?, ?>> initCacheMap() {
         ConcurrentMap<String, Cache<?, ?>> cacheConcurrentMap = new ConcurrentHashMap<>();
         Map<String, CacheConfiguration> cacheConfigurationMap = getApplicationConfiguration().getCustomCache();

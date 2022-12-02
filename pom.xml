@@ -25,7 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--Specify the version for all dependencies-->
-        <vertx.version>4.3.4</vertx.version>
+        <vertx.version>4.3.5</vertx.version>
         <lombok.version>1.18.24</lombok.version>
         <slf4j.version>2.0.5</slf4j.version>
         <logback.version>1.4.5</logback.version>

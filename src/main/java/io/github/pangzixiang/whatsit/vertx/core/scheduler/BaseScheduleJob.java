@@ -15,6 +15,9 @@ import java.lang.reflect.Method;
 
 import static java.lang.String.format;
 
+/**
+ * The type Base schedule job.
+ */
 @Slf4j
 public abstract class BaseScheduleJob extends AbstractVerticle {
 
@@ -25,10 +28,18 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
     @Getter
     private final ApplicationContext applicationContext;
 
+    /**
+     * Instantiates a new Base schedule job.
+     *
+     * @param applicationContext the application context
+     */
     public BaseScheduleJob(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
+    /**
+     * Execute.
+     */
     public abstract void execute();
 
     @Override

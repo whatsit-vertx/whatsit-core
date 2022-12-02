@@ -27,6 +27,9 @@ import java.util.Comparator;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.*;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
+/**
+ * The type Server startup verticle.
+ */
 @Slf4j
 public class ServerStartupVerticle extends CoreVerticle {
 
@@ -38,6 +41,11 @@ public class ServerStartupVerticle extends CoreVerticle {
                             .getVertxOptions()
                             .getWorkerPoolSize());
 
+    /**
+     * Instantiates a new Server startup verticle.
+     *
+     * @param applicationContext the application context
+     */
     public ServerStartupVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
     }

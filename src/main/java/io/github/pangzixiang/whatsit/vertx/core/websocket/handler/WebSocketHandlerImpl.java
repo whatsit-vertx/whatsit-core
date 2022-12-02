@@ -12,6 +12,9 @@ import java.lang.reflect.Constructor;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * The type Web socket handler.
+ */
 @Slf4j
 public class WebSocketHandlerImpl implements WebSocketHandler{
     private final ApplicationContext applicationContext;
@@ -20,6 +23,12 @@ public class WebSocketHandlerImpl implements WebSocketHandler{
 
     private final ConcurrentMap<String, AbstractWebSocketController> controllerConcurrentMap = new ConcurrentHashMap<>();
 
+    /**
+     * Instantiates a new Web socket handler.
+     *
+     * @param applicationContext the application context
+     * @param vertx              the vertx
+     */
     public WebSocketHandlerImpl(ApplicationContext applicationContext, Vertx vertx) {
         this.applicationContext = applicationContext;
         this.vertx = vertx;

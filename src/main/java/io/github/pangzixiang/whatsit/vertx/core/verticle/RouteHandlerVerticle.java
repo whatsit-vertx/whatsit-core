@@ -11,6 +11,9 @@ import java.lang.reflect.Method;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.invokeMethod;
 
 
+/**
+ * The type Route handler verticle.
+ */
 @Slf4j
 public class RouteHandlerVerticle extends CoreVerticle{
 
@@ -21,6 +24,14 @@ public class RouteHandlerVerticle extends CoreVerticle{
     private final Method method;
 
 
+    /**
+     * Instantiates a new Route handler verticle.
+     *
+     * @param applicationContext the application context
+     * @param address            the address
+     * @param method             the method
+     * @param instance           the instance
+     */
     RouteHandlerVerticle(ApplicationContext applicationContext, String address, Method method, Object instance) {
         super(applicationContext);
         this.address = address;
