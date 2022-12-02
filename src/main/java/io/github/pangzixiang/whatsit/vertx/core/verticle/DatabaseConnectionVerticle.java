@@ -15,6 +15,9 @@ import java.time.LocalDateTime;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.createCircuitBreaker;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
+/**
+ * The type Database connection verticle.
+ */
 @Slf4j
 public class DatabaseConnectionVerticle extends CoreVerticle {
 
@@ -22,8 +25,16 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
 
     private final CircuitBreaker circuitBreaker;
 
+    /**
+     * The constant DATABASE_HEALTH_NAME.
+     */
     public static final String DATABASE_HEALTH_NAME = "Database";
 
+    /**
+     * Instantiates a new Database connection verticle.
+     *
+     * @param applicationContext the application context
+     */
     public DatabaseConnectionVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
         this.circuitBreaker = createCircuitBreaker(applicationContext.getVertx());

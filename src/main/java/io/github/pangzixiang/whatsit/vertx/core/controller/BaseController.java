@@ -13,12 +13,20 @@ import lombok.extern.slf4j.Slf4j;
 import static io.github.pangzixiang.whatsit.vertx.core.constant.HttpConstants.*;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.objectToString;
 
+/**
+ * The type Base controller.
+ */
 @Slf4j
 public class BaseController extends AbstractVerticle {
 
     @Getter
     private final ApplicationContext applicationContext;
 
+    /**
+     * Instantiates a new Base controller.
+     *
+     * @param applicationContext the application context
+     */
     public BaseController(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
@@ -28,6 +36,14 @@ public class BaseController extends AbstractVerticle {
         log.info("Controller Verticle [{}] deployed!", this.getClass().getSimpleName());
     }
 
+    /**
+     * Send json response future.
+     *
+     * @param routingContext the routing context
+     * @param status         the status
+     * @param data           the data
+     * @return the future
+     */
     public Future<Void> sendJsonResponse(RoutingContext routingContext, HttpResponseStatus status, Object data) {
         try {
             return routingContext.response()

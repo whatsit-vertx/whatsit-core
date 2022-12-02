@@ -12,11 +12,19 @@ import java.util.Optional;
 
 import static io.github.pangzixiang.whatsit.vertx.core.verticle.DatabaseConnectionVerticle.DATABASE_HEALTH_NAME;
 
+/**
+ * The type Health check schedule job.
+ */
 @Slf4j
 public class HealthCheckScheduleJob extends BaseScheduleJob{
 
     private final String SQL;
 
+    /**
+     * Instantiates a new Health check schedule job.
+     *
+     * @param applicationContext the application context
+     */
     public HealthCheckScheduleJob(ApplicationContext applicationContext) {
         super(applicationContext);
         SQL = applicationContext.getApplicationConfiguration().getHealthCheckSql();

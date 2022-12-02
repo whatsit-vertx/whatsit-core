@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * The type Health.
+ */
 @Data
 @Builder
 public class Health {
