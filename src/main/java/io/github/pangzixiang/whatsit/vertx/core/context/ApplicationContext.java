@@ -38,8 +38,7 @@ public class ApplicationContext {
     private JDBCPool jdbcPool;
 
     @Getter
-    @Setter
-    private HealthDependency healthDependency;
+    private final List<HealthDependency> healthDependencies = new ArrayList<>();
 
     @Getter
     private final List<Class<? extends BaseController>> controllers = new ArrayList<>();
@@ -51,7 +50,6 @@ public class ApplicationContext {
 
     public ApplicationContext() {
         this.applicationConfiguration = new ApplicationConfiguration();
-        this.healthDependency = new HealthDependency(getApplicationConfiguration());
         if (this.applicationConfiguration.isCacheEnable()) {
              this.cacheMap = this.initCacheMap();
         } else {

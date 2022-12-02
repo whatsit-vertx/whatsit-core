@@ -10,6 +10,8 @@ import io.vertx.core.Promise;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.createCircuitBreaker;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
@@ -19,6 +21,8 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     private final String VERIFICATION_SQL;
 
     private final CircuitBreaker circuitBreaker;
+
+    public static final String DATABASE_HEALTH_NAME = "Database";
 
     public DatabaseConnectionVerticle(ApplicationContext applicationContext) {
         super(applicationContext);
@@ -54,8 +58,14 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                         getApplicationContext().setJdbcPool(jdbcPool);
                         log.info("Database Connected [ {} ]!", booleanAsyncResult.result());
 
-                        HealthDependency.DatabaseHealth databaseHealth = new HealthDependency.DatabaseHealth(booleanAsyncResult.result());
-                        getApplicationContext().getHealthDependency().setDatabaseHealth(databaseHealth);
+                        HealthDependency databaseHealth = HealthDependency
+                                .builder()
+                                .isHealth(booleanAsyncResult.result())
+                                .name(DATABASE_HEALTH_NAME)
+                                .lastUpdated(LocalDateTime.now())
+                                .build();
+
+                        getApplicationContext().getHealthDependencies().add(databaseHealth);
 
                         CompositeFuture.all(healthCheckSchedule(), flywayMigration())
                                 .onComplete(compositeFutureAsyncResult -> {
