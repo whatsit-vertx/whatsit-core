@@ -118,11 +118,15 @@ public class ApplicationContext {
             if (getApplicationConfiguration().isCacheAutoCreation()) {
                 log.warn("Cache [{}] NOT FOUND! hence using DEFAULT config to generate the Cache!", cacheName);
                 CacheConfiguration cacheConfiguration = new CacheConfiguration();
-                Cache<?, ?> c = Caffeine.newBuilder()
-                        .expireAfterWrite(cacheConfiguration.getExpireTime(), TimeUnit.MINUTES)
+                Caffeine<?, ?> caffeine = Caffeine.newBuilder()
                         .maximumSize(cacheConfiguration.getMaxSize())
-                        .initialCapacity(cacheConfiguration.getInitSize())
-                        .build();
+                        .initialCapacity(cacheConfiguration.getInitSize());
+
+                if (cacheConfiguration.getExpireTime() > 0) {
+                    caffeine.expireAfterWrite(cacheConfiguration.getExpireTime(), TimeUnit.MINUTES);
+                }
+
+                Cache<?, ?> c = caffeine.build();
                 this.cacheMap.put(cacheName, c);
                 return c;
             } else {

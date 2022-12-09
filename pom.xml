@@ -32,7 +32,6 @@
         <config.version>1.4.2</config.version>
         <jackson.version>2.14.0</jackson.version>
         <janino.version>3.1.9</janino.version>
-        <h2.version>2.1.214</h2.version>
         <agroal.version>2.0</agroal.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <flyway.version>9.8.3</flyway.version>
@@ -49,7 +48,6 @@
         <maven-javadoc-plugin>3.4.1</maven-javadoc-plugin>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <multi-module-maven-release-plugin.version>3.6.1</multi-module-maven-release-plugin.version>
-        <micrometer.version>1.9.4</micrometer.version>
     </properties>
 
     <dependencyManagement>
@@ -102,13 +100,6 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-            <version>${h2.version}</version>
         </dependency>
 
         <dependency>
