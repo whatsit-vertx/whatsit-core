@@ -1,6 +1,5 @@
 package io.github.pangzixiang.whatsit.vertx.core.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 import lombok.AllArgsConstructor;
@@ -21,11 +20,7 @@ public class RouteHandlerRequestCodec implements MessageCodec<RouteHandlerReques
 
     @Override
     public void encodeToWire(Buffer buffer, RouteHandlerRequest routeHandlerRequest) {
-        try {
-            buffer.appendString(objectToString(routeHandlerRequest));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        buffer.appendString(objectToString(routeHandlerRequest));
     }
 
     @Override

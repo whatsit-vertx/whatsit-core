@@ -1,7 +1,7 @@
 package io.github.pangzixiang.whatsit.vertx.core.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.vertx.circuitbreaker.CircuitBreaker;
@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,7 +24,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CoreUtils {
 
-    private static final ObjectMapper objectMapper;
+    private static final Gson gson;
+
+    private static final Gson gsonNulls;
 
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
 
@@ -34,7 +37,30 @@ public class CoreUtils {
     private static final long CIRCUIT_BREAKER_TIMEOUT_MS = 30_000;
 
     static {
-        objectMapper = new ObjectMapper();
+        final LocalDateTimeAdapter localDateTimeAdapter = new LocalDateTimeAdapter();
+        gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, localDateTimeAdapter)
+                .create();
+
+        gsonNulls = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, localDateTimeAdapter)
+                .serializeNulls()
+                .create();
+    }
+
+    /**
+     * Object to string string.
+     *
+     * @param o              the o
+     * @param serializeNulls the serialize nulls
+     * @return the string
+     */
+    public static String objectToString(Object o, boolean serializeNulls) {
+        if (serializeNulls) {
+            return gsonNulls.toJson(o);
+        } else {
+            return gson.toJson(o);
+        }
     }
 
     /**
@@ -42,10 +68,26 @@ public class CoreUtils {
      *
      * @param o the o
      * @return the string
-     * @throws JsonProcessingException the json processing exception
      */
-    public static String objectToString(Object o) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(o);
+    public static String objectToString(Object o) {
+        return objectToString(o, false);
+    }
+
+    /**
+     * String to object t.
+     *
+     * @param <T>            the type parameter
+     * @param json           the json
+     * @param clz            the clz
+     * @param serializeNulls the serialize nulls
+     * @return the t
+     */
+    public static <T> T stringToObject(String json, Class<T> clz, boolean serializeNulls) {
+        if (serializeNulls) {
+            return gsonNulls.fromJson(json, clz);
+        } else {
+            return gson.fromJson(json, clz);
+        }
     }
 
     /**
@@ -57,7 +99,7 @@ public class CoreUtils {
      * @return the t
      */
     public static <T> T stringToObject(String json, Class<T> clz) {
-        return objectMapper.convertValue(json, clz);
+        return stringToObject(json, clz, false);
     }
 
     /**

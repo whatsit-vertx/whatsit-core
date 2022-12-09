@@ -10,6 +10,8 @@ import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -45,7 +47,7 @@ public class HealthController extends BaseController {
                         .isHealth(isHealth())
                         .name(getApplicationContext().getApplicationConfiguration().getName())
                         .port(getApplicationContext().getPort())
-                        .startTime(new Date(ManagementFactory.getRuntimeMXBean().getStartTime()).toString())
+                        .startTime(LocalDateTime.ofInstant(new Date(ManagementFactory.getRuntimeMXBean().getStartTime()).toInstant(), ZoneId.systemDefault()))
                         .upTime(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime())
                         .dependencies(getApplicationContext().getHealthDependencies())
                         .build());
