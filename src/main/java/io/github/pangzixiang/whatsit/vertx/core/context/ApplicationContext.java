@@ -118,15 +118,7 @@ public class ApplicationContext {
             if (getApplicationConfiguration().isCacheAutoCreation()) {
                 log.warn("Cache [{}] NOT FOUND! hence using DEFAULT config to generate the Cache!", cacheName);
                 CacheConfiguration cacheConfiguration = new CacheConfiguration();
-                Caffeine<?, ?> caffeine = Caffeine.newBuilder()
-                        .maximumSize(cacheConfiguration.getMaxSize())
-                        .initialCapacity(cacheConfiguration.getInitSize());
-
-                if (cacheConfiguration.getExpireTime() > 0) {
-                    caffeine.expireAfterWrite(cacheConfiguration.getExpireTime(), TimeUnit.MINUTES);
-                }
-
-                Cache<?, ?> c = caffeine.build();
+                Cache<?, ?> c = createCache(cacheConfiguration);
                 this.cacheMap.put(cacheName, c);
                 return c;
             } else {
@@ -148,17 +140,24 @@ public class ApplicationContext {
         for (Map.Entry<String, CacheConfiguration> entry: cacheConfigurationMap.entrySet()) {
             CacheConfiguration cacheConfiguration = entry.getValue();
             if (cacheConfiguration.isEnable()) {
-                Cache<?, ?> cache = Caffeine.newBuilder()
-                        .expireAfterWrite(cacheConfiguration.getExpireTime(), TimeUnit.MINUTES)
-                        .maximumSize(cacheConfiguration.getMaxSize())
-                        .initialCapacity(cacheConfiguration.getInitSize())
-                        .build();
-                cacheConcurrentMap.put(entry.getKey(), cache);
+                cacheConcurrentMap.put(entry.getKey(), createCache(cacheConfiguration));
                 log.info("Cache [{}] init successfully with Config::[{}]!", entry.getKey(), cacheConfiguration);
             } else {
                 log.warn("Cache [{}] is not enabled, hence SKIP!", entry.getKey());
             }
         }
         return cacheConcurrentMap;
+    }
+
+    private Cache<?, ?> createCache(CacheConfiguration cacheConfiguration) {
+        Caffeine<?, ?> caffeine = Caffeine.newBuilder()
+                .maximumSize(cacheConfiguration.getMaxSize())
+                .initialCapacity(cacheConfiguration.getInitSize());
+
+        if (cacheConfiguration.getExpireTime() > 0) {
+            caffeine.expireAfterWrite(cacheConfiguration.getExpireTime(), TimeUnit.MINUTES);
+        }
+
+        return caffeine.build();
     }
 }
