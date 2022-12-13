@@ -24,9 +24,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CoreUtils {
 
-    private static final Gson gson;
+    public static final Gson gson;
 
-    private static final Gson gsonNulls;
+    public static final Gson gsonNulls;
 
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
 
@@ -139,13 +139,7 @@ public class CoreUtils {
         options.setMaxFailures(CIRCUIT_BREAKER_MAX_FAILURES);
         options.setMaxRetries(CIRCUIT_BREAKER_MAX_RETRIES);
         options.setTimeout(CIRCUIT_BREAKER_TIMEOUT_MS);
-        CircuitBreaker circuitBreaker = CircuitBreaker.create(name, vertx, options);
-        circuitBreaker.retryPolicy(retryCount -> retryCount * 500L);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("Shutting down CircuitBreaker [{}] ...", name);
-            circuitBreaker.close();
-        }));
-        return circuitBreaker;
+        return createCircuitBreaker(name, vertx, options);
     }
 
     /**
@@ -156,6 +150,24 @@ public class CoreUtils {
      */
     public static CircuitBreaker createCircuitBreaker(Vertx vertx) {
         return createCircuitBreaker(UUID.randomUUID().toString(), vertx);
+    }
+
+    /**
+     * Create circuit breaker circuit breaker.
+     *
+     * @param name  the name
+     * @param vertx the vertx
+     * @param options CircuitBreakerOptions
+     * @return the circuit breaker
+     */
+    public static CircuitBreaker createCircuitBreaker(String name, Vertx vertx, CircuitBreakerOptions options) {
+        CircuitBreaker circuitBreaker = CircuitBreaker.create(name, vertx, options);
+        circuitBreaker.retryPolicy(retryCount -> retryCount * 500L);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Shutting down CircuitBreaker [{}] ...", name);
+            circuitBreaker.close();
+        }));
+        return circuitBreaker;
     }
 
     /**
