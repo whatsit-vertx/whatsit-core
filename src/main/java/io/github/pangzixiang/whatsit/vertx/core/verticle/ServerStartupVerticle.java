@@ -8,7 +8,6 @@ import io.github.pangzixiang.whatsit.vertx.core.model.RouteHandlerRequest;
 import io.github.pangzixiang.whatsit.vertx.core.model.RouteHandlerRequestCodec;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.handler.WebSocketHandler;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpMethod;
@@ -32,14 +31,6 @@ import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deplo
  */
 @Slf4j
 public class ServerStartupVerticle extends CoreVerticle {
-
-    private final DeploymentOptions options = new DeploymentOptions()
-            .setWorker(true)
-            .setWorkerPoolSize(
-                    getApplicationContext()
-                            .getApplicationConfiguration()
-                            .getVertxOptions()
-                            .getWorkerPoolSize());
 
     /**
      * Instantiates a new Server startup verticle.
@@ -170,7 +161,7 @@ public class ServerStartupVerticle extends CoreVerticle {
                             if (Handler.class.isAssignableFrom(m2.getReturnType())) {
                                 route.handler((Handler<RoutingContext>) invokeMethod(m2, controllerInstance));
                             } else {
-                                deployVerticle(getVertx(), new RouteHandlerVerticle(getApplicationContext(), url, m2, controllerInstance), options)
+                                deployVerticle(getVertx(), new RouteHandlerVerticle(getApplicationContext(), url, m2, controllerInstance))
                                         .onSuccess(s -> route.handler(h1 -> getVertx()
                                                 .eventBus()
                                                 .publish(url, new RouteHandlerRequest(h1))))
