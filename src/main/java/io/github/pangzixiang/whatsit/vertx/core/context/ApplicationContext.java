@@ -5,9 +5,12 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.controller.BaseController;
+import io.github.pangzixiang.whatsit.vertx.core.controller.HealthController;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,8 +31,7 @@ public class ApplicationContext {
      * Vertx Instance
      */
     @Getter
-    @Setter
-    private Vertx vertx;
+    private final Vertx vertx;
 
     /**
      * Server Port
@@ -75,6 +77,12 @@ public class ApplicationContext {
     private final List<Class<? extends AbstractWebSocketController>> websocketControllers = new ArrayList<>();
 
     /**
+     * Global Router Handler List
+     */
+    @Getter
+    private final List<Handler<RoutingContext>> globalRouterHandler = new ArrayList<>();
+
+    /**
      * Constructor for ApplicationContext
      */
     public ApplicationContext() {
@@ -84,6 +92,17 @@ public class ApplicationContext {
         } else {
             this.cacheMap = null;
         }
+        this.vertx = Vertx.vertx(getApplicationConfiguration().getVertxOptions());
+    }
+
+    /**
+     * Register global router handler.
+     *
+     * @param handlers the handlers
+     */
+    @SafeVarargs
+    public final void registerGlobalRouterHandler(Handler<RoutingContext> ... handlers) {
+        this.globalRouterHandler.addAll(Arrays.asList(handlers));
     }
 
     /**
@@ -93,6 +112,9 @@ public class ApplicationContext {
      */
     @SafeVarargs
     public final void registerController(Class<? extends BaseController>... controller) {
+        if (this.controllers.isEmpty()) {
+            this.controllers.add(HealthController.class);
+        }
         this.controllers.addAll(Arrays.asList(controller));
     }
 

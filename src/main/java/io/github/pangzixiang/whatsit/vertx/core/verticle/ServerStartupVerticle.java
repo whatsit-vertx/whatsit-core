@@ -14,7 +14,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
@@ -101,7 +100,10 @@ public class ServerStartupVerticle extends CoreVerticle {
 
     private Router registerRouter() {
         Router router = Router.router(getVertx());
-        router.route().handler(BodyHandler.create());
+        getApplicationContext().getGlobalRouterHandler().forEach(handler -> {
+            log.info("Register Global Router Handler [{}]", handler.getClass().getSimpleName());
+            router.route().handler(handler);
+        });
         getApplicationContext().getControllers().forEach(clz -> {
             Method[] endpoints = clz.getMethods();
             Object controllerInstance = createInstance(clz, getApplicationContext());
