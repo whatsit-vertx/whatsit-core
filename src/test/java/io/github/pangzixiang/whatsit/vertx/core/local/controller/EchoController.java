@@ -46,4 +46,10 @@ public class EchoController extends BaseController {
     public void testCache(RoutingContext routingContext) {
         sendJsonResponse(routingContext, HttpResponseStatus.OK, cache.getIfPresent("test"));
     }
+
+    @RestController(path = "/post", method = HttpRequestMethod.POST)
+    public void postTest(RoutingContext routingContext) {
+        log.info(routingContext.body().asString());
+        sendJsonResponse(routingContext, HttpResponseStatus.OK, "ok");
+    }
 }

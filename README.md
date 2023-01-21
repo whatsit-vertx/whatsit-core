@@ -29,9 +29,13 @@ import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 public class RunWhatsitCoreLocalTest {
     public static void main(String[] args) {
         ApplicationContext applicationContext = new ApplicationContext();
-        applicationContext.registerController(SomeController.class);
-        ApplicationRunner applicationRunner = new ApplicationRunner(applicationContext);
-        applicationRunner.run();
+        applicationContext.registerController(EchoController.class);
+        applicationContext.registerWebSocketController(TestWebSocketController.class);
+        applicationContext.registerGlobalRouterHandler(SessionHandler.create(LocalSessionStore.create(applicationContext.getVertx())), BodyHandler.create());
+//        applicationContext.getApplicationConfiguration().setHttpServerOptions(new HttpServerOptions().setLogActivity(true));
+//        applicationContext.getApplicationConfiguration().setVertxOptions(new VertxOptions());
+        ApplicationRunner.run(applicationContext);
+        deployVerticle(applicationContext.getVertx(), new TestVerticle());
     }
 }
 ```
