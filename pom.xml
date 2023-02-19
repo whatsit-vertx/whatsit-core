@@ -25,17 +25,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--Specify the version for all dependencies-->
-        <vertx.version>4.3.7</vertx.version>
+        <vertx.version>4.3.8</vertx.version>
         <lombok.version>1.18.24</lombok.version>
         <slf4j.version>2.0.5</slf4j.version>
         <logback.version>1.4.5</logback.version>
         <config.version>1.4.2</config.version>
-        <gson.version>2.10</gson.version>
+        <gson.version>2.10.1</gson.version>
         <janino.version>3.1.9</janino.version>
         <agroal.version>2.0</agroal.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <flyway.version>9.8.3</flyway.version>
         <caffeine.version>3.1.2</caffeine.version>
+        <jackson.version>2.14.2</jackson.version>
 
         <maven-scm-plugin.version>1.12.0</maven-scm-plugin.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
@@ -48,6 +49,7 @@
         <maven-javadoc-plugin>3.4.1</maven-javadoc-plugin>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <multi-module-maven-release-plugin.version>3.6.1</multi-module-maven-release-plugin.version>
+        <dependency-check-maven.version>8.1.0</dependency-check-maven.version>
     </properties>
 
     <dependencyManagement>
@@ -72,7 +74,24 @@
 
         <dependency>
             <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.vertx</groupId>
+                    <artifactId>vertx-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -96,6 +115,30 @@
         </dependency>
 
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-toml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.agroal</groupId>
             <artifactId>agroal-pool</artifactId>
             <version>${agroal.version}</version>
@@ -105,6 +148,12 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                    <artifactId>jackson-dataformat-toml</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -272,6 +321,19 @@
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${dependency-check-maven.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
