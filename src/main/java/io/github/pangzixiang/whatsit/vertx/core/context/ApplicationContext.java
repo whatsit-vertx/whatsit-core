@@ -4,86 +4,54 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
-import io.github.pangzixiang.whatsit.vertx.core.controller.BaseController;
-import io.github.pangzixiang.whatsit.vertx.core.controller.HealthController;
-import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
-import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
-import io.vertx.core.Handler;
+import io.github.pangzixiang.whatsit.vertx.core.pojo.EventBusRequest;
+import io.github.pangzixiang.whatsit.vertx.core.pojo.EventBusRequestCodec;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.healthchecks.HealthCheckHandler;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.management.ManagementFactory;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_ENABLE;
+
 /**
- * Application Context
+ * The type Application context.
  */
 @Slf4j
 public class ApplicationContext {
 
-    /**
-     * Vertx Instance
-     */
     @Getter
     private final Vertx vertx;
 
-    /**
-     * Server Port
-     */
     @Getter
     @Setter
     private int port;
 
-    /**
-     * Application Configuration
-     */
     @Getter
     private final ApplicationConfiguration applicationConfiguration;
 
-    /**
-     * JDBC pool
-     */
     @Getter
     @Setter
     private JDBCPool jdbcPool;
 
-    /**
-     * HealthDependencies
-     */
-    @Getter
-    private final List<HealthDependency> healthDependencies = new ArrayList<>();
+    private HealthCheckHandler healthCheckHandler;
 
-    /**
-     * Controllers
-     */
-    @Getter
-    private final List<Class<? extends BaseController>> controllers = new ArrayList<>();
-
-    /**
-     * Cache Map storing the Cache
-     */
     private final ConcurrentMap<String, Cache<?, ?>> cacheMap;
 
     /**
-     * Websocket Controller
-     */
-    @Getter
-    private final List<Class<? extends AbstractWebSocketController>> websocketControllers = new ArrayList<>();
-
-    /**
-     * Global Router Handler List
-     */
-    @Getter
-    private final List<Handler<RoutingContext>> globalRouterHandler = new ArrayList<>();
-
-    /**
-     * Constructor for ApplicationContext
+     * Instantiates a new Application context.
      */
     public ApplicationContext() {
         this.applicationConfiguration = new ApplicationConfiguration();
@@ -93,46 +61,39 @@ public class ApplicationContext {
             this.cacheMap = null;
         }
         this.vertx = Vertx.vertx(getApplicationConfiguration().getVertxOptions());
+
+        getVertx()
+                .eventBus()
+                .unregisterDefaultCodec(EventBusRequest.class)
+                .registerDefaultCodec(EventBusRequest.class, new EventBusRequestCodec(EventBusRequest.class));
     }
 
     /**
-     * Register global router handler.
+     * Gets health check handler.
      *
-     * @param handlers the handlers
+     * @return the health check handler
      */
-    @SafeVarargs
-    public final void registerGlobalRouterHandler(Handler<RoutingContext> ... handlers) {
-        this.globalRouterHandler.addAll(Arrays.asList(handlers));
-    }
-
-    /**
-     * Method to register web controllers
-     *
-     * @param controller Class extends BaseController
-     */
-    @SafeVarargs
-    public final void registerController(Class<? extends BaseController>... controller) {
-        if (this.controllers.isEmpty()) {
-            this.controllers.add(HealthController.class);
+    public final HealthCheckHandler getHealthCheckHandler() {
+        if (this.healthCheckHandler == null && getApplicationConfiguration().getBoolean(HEALTH_ENABLE)) {
+            this.healthCheckHandler = HealthCheckHandler.create(getVertx());
+            this.healthCheckHandler.register("app-info", promise -> {
+                JsonObject appInfo = new JsonObject();
+                appInfo.put("name", getApplicationConfiguration().getName());
+                appInfo.put("port", getPort());
+                appInfo.put("start-time", Instant.ofEpochMilli(ManagementFactory.getRuntimeMXBean().getStartTime())
+                        .atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                promise.complete(Status.OK(appInfo));
+            });
         }
-        this.controllers.addAll(Arrays.asList(controller));
+        return this.healthCheckHandler;
     }
 
     /**
-     * Method to register websocket controllers
+     * Gets cache.
      *
-     * @param controller Class extends AbstractWebSocketController
-     */
-    @SafeVarargs
-    public final void registerWebSocketController(Class<? extends AbstractWebSocketController> ... controller) {
-        this.websocketControllers.addAll(Arrays.asList(controller));
-    }
-
-    /**
-     * Method to get Cache from Cache Map
-     *
-     * @param cacheName Cache Name
-     * @return Cache cache
+     * @param cacheName the cache name
+     * @return the cache
      */
     public Cache<?, ?> getCache(String cacheName) {
         Cache<?, ?> cache = this.cacheMap.get(cacheName);
@@ -151,11 +112,6 @@ public class ApplicationContext {
         return cache;
     }
 
-    /**
-     * Method to init Cache Map
-     *
-     * @return Cache Map
-     */
     private ConcurrentMap<String, Cache<?, ?>> initCacheMap() {
         ConcurrentMap<String, Cache<?, ?>> cacheConcurrentMap = new ConcurrentHashMap<>();
         Map<String, CacheConfiguration> cacheConfigurationMap = getApplicationConfiguration().getCustomCache();

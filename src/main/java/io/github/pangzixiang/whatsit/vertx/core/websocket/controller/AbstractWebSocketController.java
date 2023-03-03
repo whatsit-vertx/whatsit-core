@@ -21,25 +21,25 @@ public abstract class AbstractWebSocketController {
     private final Vertx vertx;
 
     /**
-     * perform action when connection start
+     * Start connect.
      *
-     * @param serverWebSocket serverWebSocket
+     * @param serverWebSocket the server web socket
      */
     public abstract void startConnect(ServerWebSocket serverWebSocket);
 
     /**
-     * perform action during the connection
+     * On connect handler.
      *
-     * @param serverWebSocket serverWebSocket
-     * @return WebSocketFrame handler
+     * @param serverWebSocket the server web socket
+     * @return the handler
      */
     public abstract Handler<WebSocketFrame> onConnect(ServerWebSocket serverWebSocket);
 
     /**
-     * perform action when connection close
+     * Close connect handler.
      *
-     * @param serverWebSocket serverWebSocket
-     * @return Void handler
+     * @param serverWebSocket the server web socket
+     * @return the handler
      */
     public abstract Handler<Void> closeConnect(ServerWebSocket serverWebSocket);
 }

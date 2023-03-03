@@ -1,7 +1,6 @@
 package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
-import io.github.pangzixiang.whatsit.vertx.core.model.HealthDependency;
 import io.github.pangzixiang.whatsit.vertx.core.scheduler.HealthCheckScheduleJob;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.CompositeFuture;
@@ -9,8 +8,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.LocalDateTime;
 
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.createCircuitBreaker;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
@@ -24,11 +21,6 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     private final String VERIFICATION_SQL;
 
     private final CircuitBreaker circuitBreaker;
-
-    /**
-     * The constant DATABASE_HEALTH_NAME.
-     */
-    public static final String DATABASE_HEALTH_NAME = "Database";
 
     /**
      * Instantiates a new Database connection verticle.
@@ -68,16 +60,6 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                     if (booleanAsyncResult.succeeded()) {
                         getApplicationContext().setJdbcPool(jdbcPool);
                         log.info("Database Connected [ {} ]!", booleanAsyncResult.result());
-
-                        HealthDependency databaseHealth = HealthDependency
-                                .builder()
-                                .isHealth(booleanAsyncResult.result())
-                                .name(DATABASE_HEALTH_NAME)
-                                .lastUpdated(LocalDateTime.now())
-                                .build();
-
-                        getApplicationContext().getHealthDependencies().add(databaseHealth);
-
                         CompositeFuture.all(healthCheckSchedule(), flywayMigration())
                                 .onComplete(compositeFutureAsyncResult -> {
                                     if (compositeFutureAsyncResult.succeeded()) {

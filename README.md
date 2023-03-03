@@ -18,9 +18,8 @@ The whatsit-core library provides the following features:
 ```shell
 java -Dconfig.resource=local.conf -jar xxxx.jar
 ```
-2. Init the Application Context
-3. Init the Initializer and pass your Controllers into it.
-4. Finally, run the application.
+1. Init the Application Context
+2. run the application.
 
 ```java
 import io.github.pangzixiang.whatsit.vertx.core.ApplicationRunner;
@@ -29,9 +28,6 @@ import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 public class RunWhatsitCoreLocalTest {
     public static void main(String[] args) {
         ApplicationContext applicationContext = new ApplicationContext();
-        applicationContext.registerController(EchoController.class);
-        applicationContext.registerWebSocketController(TestWebSocketController.class);
-        applicationContext.registerGlobalRouterHandler(SessionHandler.create(LocalSessionStore.create(applicationContext.getVertx())), BodyHandler.create());
 //        applicationContext.getApplicationConfiguration().setHttpServerOptions(new HttpServerOptions().setLogActivity(true));
 //        applicationContext.getApplicationConfiguration().setVertxOptions(new VertxOptions());
         ApplicationRunner.run(applicationContext);
@@ -45,15 +41,17 @@ public class RunWhatsitCoreLocalTest {
 - Controller
 1. Create a new Class to extend the BaseController Class
 2. Create a new method with @RestController method
-3. Finally, after you add the controller to the ApplicationInitializer, then the application will automatically register the endpoint and deploy this Verticle.
+3. Finally, the application will automatically register the endpoint and deploy this Verticle.
 
 ```java
 import io.github.pangzixiang.whatsit.vertx.core.RestController;
 import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.HttpRequestMethod;
+import io.github.pangzixiang.whatsit.vertx.core.annotation.RestEndpoint;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.ext.web.RoutingContext;
 
+@RestController
 public class SomeController extends BaseController {
 
     public SomeController(ApplicationContext applicationContext) {
@@ -65,7 +63,7 @@ public class SomeController extends BaseController {
         super.start();
     }
 
-    @RestController(path = "/something", method = HttpRequestMethod.GET)
+    @RestEndpoint(path = "/something", method = HttpRequestMethod.GET)
     public void someEndpoint(RoutingContext routingContext) {
         sendJsonResponse(routingContext
                 , HttpResponseStatus.OK
@@ -119,26 +117,8 @@ swagger: {
   baseUrl: /swagger/v1
 }
 ```
-2. register the Swagger Controller and your Self Controller
 
-```java
-import io.github.pangzixiang.whatsit.local.Controller.EchoController;
-import io.github.pangzixiang.whatsit.controller.SwaggerController;
-import io.github.pangzixiang.whatsit.vertx.core.ApplicationRunner;
-import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
-
-public class RunWhatsitSwaggerLocalTest {
-    public static void main(String[] args) {
-        System.setProperty("whatsit.env", "local");
-        ApplicationContext applicationContext = new ApplicationContext();
-        applicationContext.registerController(SwaggerController.class, EchoController.class);
-        ApplicationRunner applicationRunner = new ApplicationRunner(applicationContext);
-        applicationRunner.run();
-    }
-}
-```
-
-3. finally open 'localhost:port/swagger/v1', then you can see the Swagger UI.
+2. finally open 'localhost:port/swagger/v1', then you can see the Swagger UI.
 
 - Cache([Caffeine](https://github.com/ben-manes/caffeine))
 1. add the cache config to the conf file like below
@@ -159,7 +139,12 @@ cache: {
 ```
 > while cache.autoCreation = true, then it will auto create the cache even though does not specify it in the conf file.
 2. Get the Cache from ApplicationContext:
+
 ```java
+import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
+import io.github.pangzixiang.whatsit.vertx.core.annotation.RestEndpoint;
+
+@RestController
 public class EchoController extends BaseController {
     public EchoController(ApplicationContext applicationContext) {
         super(applicationContext);
@@ -174,7 +159,7 @@ public class EchoController extends BaseController {
         cache.put("test", "test");
     }
 
-    @RestController(path = "/cacheTest", method = HttpRequestMethod.GET)
+    @RestEndpoint(path = "/cacheTest", method = HttpRequestMethod.GET)
     public void testCache(RoutingContext routingContext) {
         sendJsonResponse(routingContext, HttpResponseStatus.OK, cache.getIfPresent("test"));
     }
@@ -241,17 +226,7 @@ public class TestWebSocketController extends AbstractWebSocketController {
     }
 }
 ```
-2. register the controller class to ApplicationContext
-```java
-public class RunWhatsitCoreLocalTest {
-    public static void main(String[] args) {
-        ApplicationContext applicationContext = new ApplicationContext();
-        applicationContext.registerWebSocketController(TestWebSocketController.class);
-        ApplicationRunner applicationRunner = new ApplicationRunner(applicationContext);
-        applicationRunner.run();
-    }
-}
-```
+2. finally it will be automatically registered.
 
 ### Upcoming feature:
 - [Swagger](https://github.com/swagger-api/swagger-ui) Integration (ongoing)

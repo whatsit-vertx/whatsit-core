@@ -1,27 +1,21 @@
 package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
 import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
+import io.github.pangzixiang.whatsit.vertx.core.annotation.WebSocketAnnotation;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
-import io.github.pangzixiang.whatsit.vertx.core.filter.HttpFilter;
+import io.github.pangzixiang.whatsit.vertx.core.controller.BaseController;
 import io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants;
-import io.github.pangzixiang.whatsit.vertx.core.model.RouteHandlerRequest;
-import io.github.pangzixiang.whatsit.vertx.core.model.RouteHandlerRequestCodec;
+import io.github.pangzixiang.whatsit.vertx.core.utils.AutoClassLoader;
+import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.handler.WebSocketHandler;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Comparator;
 
+import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_ENABLE;
+import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_PATH;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.*;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
@@ -43,10 +37,6 @@ public class ServerStartupVerticle extends CoreVerticle {
     @Override
     public void start() throws Exception {
         super.start();
-        getVertx()
-                .eventBus()
-                .unregisterDefaultCodec(RouteHandlerRequest.class)
-                .registerDefaultCodec(RouteHandlerRequest.class, new RouteHandlerRequestCodec(RouteHandlerRequest.class));
         getVertx().eventBus().consumer(CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID).handler(this::start)
                 .exceptionHandler(exception -> log.error(exception.getMessage(), exception))
                 .completionHandler(complete -> log.debug("EventBus Consumer [{}] registered", CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID));
@@ -57,7 +47,9 @@ public class ServerStartupVerticle extends CoreVerticle {
             Router router = registerRouter();
 
             WebSocketHandler webSocketHandler = WebSocketHandler.create(getApplicationContext(), getVertx());
-            getApplicationContext().getWebsocketControllers().forEach(webSocketHandler::registerController);
+            AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(WebSocketAnnotation.class)
+                            && AbstractWebSocketController.class.isAssignableFrom(clz))
+                    .forEach(clz -> webSocketHandler.registerController((Class<? extends AbstractWebSocketController>) clz));
 
             getVertx().executeBlocking(promise -> {
                 log.info("Starting HTTP Server...");
@@ -100,84 +92,18 @@ public class ServerStartupVerticle extends CoreVerticle {
 
     private Router registerRouter() {
         Router router = Router.router(getVertx());
-        getApplicationContext().getGlobalRouterHandler().forEach(handler -> {
-            log.info("Register Global Router Handler [{}]", handler.getClass().getSimpleName());
-            router.route().handler(handler);
-        });
-        getApplicationContext().getControllers().forEach(clz -> {
-            Method[] endpoints = clz.getMethods();
-            Object controllerInstance = createInstance(clz, getApplicationContext());
-            deployVerticle(getVertx(), (AbstractVerticle) controllerInstance)
-                    .onFailure(failure -> {
-                        log.error(failure.getMessage(), failure);
-                        System.exit(-1);
-                    });
-            Arrays.stream(endpoints)
-                    .filter(m1 -> m1.getAnnotation(RestController.class) != null)
-                    .sorted(Comparator.comparing(Method::getName))
-                    .forEach(m2 -> {
-                        RestController restController = m2.getAnnotation(RestController.class);
-                        m2.setAccessible(true);
 
-                        Class<? extends HttpFilter>[] httpFilters = restController.filter();
+        if (getApplicationContext().getApplicationConfiguration().getBoolean(HEALTH_ENABLE)) {
+            router.get(getApplicationContext().getApplicationConfiguration().getString(HEALTH_PATH))
+                    .handler(getApplicationContext().getHealthCheckHandler());
+        }
 
-                        try {
-                            String path = restController.path();
-                            log.debug("Registering path -> {}", path);
-
-                            String url = refactorControllerPath(path, getApplicationContext().getApplicationConfiguration());
-
-                            log.debug("Refactor path [{}] to [{}]", path, url);
-
-                            Route route = router.route(HttpMethod.valueOf(restController.method().name()), url);
-
-                            //Filter
-                            if (httpFilters.length > 0) {
-                                Arrays.stream(httpFilters)
-                                        .forEach(httpFilter -> {
-                                            try {
-                                                Method doFilter = httpFilter.getMethod("doFilter", RoutingContext.class);
-                                                if (!Modifier.isAbstract(doFilter.getModifiers())) {
-                                                    Object filterInstance = createInstance(httpFilter, getApplicationContext());
-                                                    deployVerticle(getVertx(), (AbstractVerticle) filterInstance)
-                                                            .onFailure(failure -> {
-                                                                log.error(failure.getMessage(), failure);
-                                                                System.exit(-1);
-                                                            });
-                                                    doFilter.setAccessible(true);
-                                                    route.handler(filter -> invokeMethod(doFilter, filterInstance, filter));
-                                                } else {
-                                                    log.warn("Skip Invalid Filter [{}]!", httpFilter.getSimpleName());
-                                                }
-                                            } catch (NoSuchMethodException e) {
-                                                throw new RuntimeException(e);
-                                            }
-                                        });
-                                log.info("Endpoint [{} -> {}] registered with Filter -> {}!"
-                                        , restController.method(), url, httpFilters);
-                            } else {
-                                log.info("Endpoint [{} -> {}] registered without Filter!", restController.method(), url);
-                            }
-
-                            // Main
-                            if (Handler.class.isAssignableFrom(m2.getReturnType())) {
-                                route.handler((Handler<RoutingContext>) invokeMethod(m2, controllerInstance));
-                            } else {
-                                deployVerticle(getVertx(), new RouteHandlerVerticle(getApplicationContext(), url, m2, controllerInstance))
-                                        .onSuccess(s -> route.handler(h1 -> getVertx()
-                                                .eventBus()
-                                                .publish(url, new RouteHandlerRequest(h1))))
-                                        .onFailure(throwable -> {
-                                            log.error("Failed to register endpoint [{}]", url, throwable);
-                                            System.exit(-1);
-                                        });
-                            }
-                        } catch (Exception e) {
-                            log.error("Failed to register router!", e);
-                            System.exit(-1);
-                        }
-                    });
-        });
+        AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(RestController.class)
+                        && BaseController.class.isAssignableFrom(clz))
+                .forEach(controller -> {
+                    Object controllerInstance = createInstance(controller, getApplicationContext(), router);
+                    deployVerticle(getVertx(), (BaseController) controllerInstance);
+                });
         return router;
     }
 }

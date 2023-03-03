@@ -3,7 +3,6 @@ package io.github.pangzixiang.whatsit.vertx.core.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
@@ -24,8 +23,14 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CoreUtils {
 
+    /**
+     * The constant gson.
+     */
     public static final Gson gson;
 
+    /**
+     * The constant gsonNulls.
+     */
     public static final Gson gsonNulls;
 
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
@@ -155,9 +160,9 @@ public class CoreUtils {
     /**
      * Create circuit breaker circuit breaker.
      *
-     * @param name  the name
-     * @param vertx the vertx
-     * @param options CircuitBreakerOptions
+     * @param name    the name
+     * @param vertx   the vertx
+     * @param options the options
      * @return the circuit breaker
      */
     public static CircuitBreaker createCircuitBreaker(String name, Vertx vertx, CircuitBreakerOptions options) {
@@ -196,8 +201,13 @@ public class CoreUtils {
      */
     public static Object createInstance(Class<?> clz, Object...args) {
         try {
-            Constructor<?> constructor = clz.getConstructor(ApplicationContext.class);
-            return constructor.newInstance(args);
+            Constructor<?>[] constructors = clz.getConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == args.length) {
+                    return constructor.newInstance(args);
+                }
+            }
+            throw new NoSuchMethodException("Cannot find constructor for Class %s, args %s".formatted(clz.getSimpleName(), args));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             log.error("Failed to init Instance for class[{}]", clz.getSimpleName());
             throw new RuntimeException(e);

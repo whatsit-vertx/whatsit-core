@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-    <property name="ENV1" value="${config.resource:-reference}"/>
-    <property name="ENV2" value="${config.file:-reference}"/>
+    <property name="ENV1" value="${config.resource:-local}"/>
+    <property name="ENV2" value="${config.file:-local}"/>
     <if condition='p("ENV1").contains("local") || p("ENV2").contains("local")'>
         <then>
             <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
