@@ -2,6 +2,7 @@ package io.github.pangzixiang.whatsit.vertx.core.scheduler;
 
 import io.github.pangzixiang.whatsit.vertx.core.annotation.Schedule;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
+import io.vertx.ext.healthchecks.HealthCheckHandler;
 import io.vertx.ext.healthchecks.Status;
 import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
@@ -32,9 +33,12 @@ public class HealthCheckScheduleJob extends BaseScheduleJob {
     public HealthCheckScheduleJob(ApplicationContext applicationContext) {
         super(applicationContext);
         SQL = applicationContext.getApplicationConfiguration().getHealthCheckSql();
-        getApplicationContext().getHealthCheckHandler().register(DATABASE_HEALTH_NAME, promise -> {
-            promise.complete(getIsHealth()? Status.OK(): Status.KO());
-        });
+        HealthCheckHandler healthCheckHandler = getApplicationContext().getHealthCheckHandler();
+        if (healthCheckHandler != null) {
+            healthCheckHandler.register(DATABASE_HEALTH_NAME, promise -> {
+                promise.complete(getIsHealth()? Status.OK(): Status.KO());
+            });
+        }
     }
 
     @Override

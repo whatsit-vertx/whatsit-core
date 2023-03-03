@@ -23,8 +23,14 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CoreUtils {
 
+    /**
+     * The constant gson.
+     */
     public static final Gson gson;
 
+    /**
+     * The constant gsonNulls.
+     */
     public static final Gson gsonNulls;
 
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
@@ -154,9 +160,9 @@ public class CoreUtils {
     /**
      * Create circuit breaker circuit breaker.
      *
-     * @param name  the name
-     * @param vertx the vertx
-     * @param options CircuitBreakerOptions
+     * @param name    the name
+     * @param vertx   the vertx
+     * @param options the options
      * @return the circuit breaker
      */
     public static CircuitBreaker createCircuitBreaker(String name, Vertx vertx, CircuitBreakerOptions options) {

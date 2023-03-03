@@ -16,6 +16,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -26,46 +27,31 @@ import java.util.concurrent.TimeUnit;
 import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_ENABLE;
 
 /**
- * Application Context
+ * The type Application context.
  */
 @Slf4j
 public class ApplicationContext {
 
-    /**
-     * Vertx Instance
-     */
     @Getter
     private final Vertx vertx;
 
-    /**
-     * Server Port
-     */
     @Getter
     @Setter
     private int port;
 
-    /**
-     * Application Configuration
-     */
     @Getter
     private final ApplicationConfiguration applicationConfiguration;
 
-    /**
-     * JDBC pool
-     */
     @Getter
     @Setter
     private JDBCPool jdbcPool;
 
     private HealthCheckHandler healthCheckHandler;
 
-    /**
-     * Cache Map storing the Cache
-     */
     private final ConcurrentMap<String, Cache<?, ?>> cacheMap;
 
     /**
-     * Constructor for ApplicationContext
+     * Instantiates a new Application context.
      */
     public ApplicationContext() {
         this.applicationConfiguration = new ApplicationConfiguration();
@@ -82,6 +68,11 @@ public class ApplicationContext {
                 .registerDefaultCodec(EventBusRequest.class, new EventBusRequestCodec(EventBusRequest.class));
     }
 
+    /**
+     * Gets health check handler.
+     *
+     * @return the health check handler
+     */
     public final HealthCheckHandler getHealthCheckHandler() {
         if (this.healthCheckHandler == null && getApplicationConfiguration().getBoolean(HEALTH_ENABLE)) {
             this.healthCheckHandler = HealthCheckHandler.create(getVertx());
@@ -89,8 +80,7 @@ public class ApplicationContext {
                 JsonObject appInfo = new JsonObject();
                 appInfo.put("name", getApplicationConfiguration().getName());
                 appInfo.put("port", getPort());
-                appInfo.put("start-time", new Date(ManagementFactory.getRuntimeMXBean().getStartTime())
-                        .toInstant()
+                appInfo.put("start-time", Instant.ofEpochMilli(ManagementFactory.getRuntimeMXBean().getStartTime())
                         .atZone(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
                 promise.complete(Status.OK(appInfo));
@@ -100,10 +90,10 @@ public class ApplicationContext {
     }
 
     /**
-     * Method to get Cache from Cache Map
+     * Gets cache.
      *
-     * @param cacheName Cache Name
-     * @return Cache cache
+     * @param cacheName the cache name
+     * @return the cache
      */
     public Cache<?, ?> getCache(String cacheName) {
         Cache<?, ?> cache = this.cacheMap.get(cacheName);
@@ -122,11 +112,6 @@ public class ApplicationContext {
         return cache;
     }
 
-    /**
-     * Method to init Cache Map
-     *
-     * @return Cache Map
-     */
     private ConcurrentMap<String, Cache<?, ?>> initCacheMap() {
         ConcurrentMap<String, Cache<?, ?>> cacheConcurrentMap = new ConcurrentHashMap<>();
         Map<String, CacheConfiguration> cacheConfigurationMap = getApplicationConfiguration().getCustomCache();

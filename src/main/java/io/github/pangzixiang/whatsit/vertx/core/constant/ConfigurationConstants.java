@@ -148,7 +148,13 @@ public class ConfigurationConstants {
      */
     public static final String CACHE_AUTO_CREATION = "cache.autoCreation";
 
+    /**
+     * The constant HEALTH_ENABLE.
+     */
     public static final String HEALTH_ENABLE = "health.enable";
 
+    /**
+     * The constant HEALTH_PATH.
+     */
     public static final String HEALTH_PATH = "health.path";
 }

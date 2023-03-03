@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The interface Rest controller.
+ * The interface Rest endpoint.
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

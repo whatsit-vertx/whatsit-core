@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.objectToString;
 
 /**
- * The type Route handler request codec.
+ * The type Event bus request codec.
  */
 @Slf4j
 @AllArgsConstructor

@@ -41,6 +41,7 @@ public class BaseController extends AbstractVerticle {
      * Instantiates a new Base controller.
      *
      * @param applicationContext the application context
+     * @param router             the router
      */
     public BaseController(ApplicationContext applicationContext, Router router) {
         this.applicationContext = applicationContext;

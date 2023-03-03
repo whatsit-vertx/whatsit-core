@@ -13,6 +13,9 @@ import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * The type Auto class loader.
+ */
 @Slf4j
 public class AutoClassLoader {
 
@@ -35,18 +38,36 @@ public class AutoClassLoader {
 
     private AutoClassLoader() {}
 
+    /**
+     * Gets classes by annotation.
+     *
+     * @param annotation the annotation
+     * @return the classes by annotation
+     */
     public static List<Class<?>> getClassesByAnnotation(Class<? extends Annotation> annotation) {
         List<Class<?>> result = allClz.stream().filter(clz -> clz.isAnnotationPresent(annotation)).toList();
         log.info("Succeed to query Classes {} by Annotation [{}]", result, annotation.getSimpleName());
         return result;
     }
 
+    /**
+     * Gets classes by abstract class.
+     *
+     * @param abstractClass the abstract class
+     * @return the classes by abstract class
+     */
     public static List<Class<?>> getClassesByAbstractClass(Class<?> abstractClass) {
         List<Class<?>> result = allClz.stream().filter(clz -> abstractClass.isAssignableFrom(clz) && clz != abstractClass).toList();
         log.info("Succeed to query Classes {} by Abstract Class [{}]", result, abstractClass.getSimpleName());
         return result;
     }
 
+    /**
+     * Gets classes by custom filter.
+     *
+     * @param predicate the predicate
+     * @return the classes by custom filter
+     */
     public static List<Class<?>> getClassesByCustomFilter(Predicate<? super Class<?>> predicate) {
         List<Class<?>> result = allClz.stream().filter(predicate).toList();
         log.info("Succeed to query Classes {} by custom filter", result);
@@ -69,13 +90,8 @@ public class AutoClassLoader {
                         JarEntry jarEntry = entries.nextElement();
                         String name = jarEntry.getName();
                         if (name.endsWith(DOT_CLASS)) {
-                            name = convertJarEntryNameToClassName(name);
-                            try {
-                                Class<?> clz = Class.forName(name);
-                                if (!clz.isInterface()) {
-                                    allClz.add(clz);
-                                }
-                            } catch (Exception | LinkageError ignored) {}
+                            Class<?> clz = convertClassNameToClass(convertJarEntryNameToClassName(name));
+                            if (clz != null) allClz.add(clz);
                         }
                     }
                 } else {
@@ -96,13 +112,8 @@ public class AutoClassLoader {
                     if (file.isDirectory()) {
                         getClassesInPath(basePath, file.getAbsolutePath());
                     } else {
-                        String name = convertPathToClassName(basePath, file);
-                        try {
-                            Class<?> clz = Class.forName(name);
-                            if (!clz.isInterface()) {
-                                allClz.add(clz);
-                            }
-                        } catch (Exception | LinkageError ignored) {}
+                        Class<?> clz = convertClassNameToClass(convertPathToClassName(basePath, file));
+                        if (clz != null) allClz.add(clz);
                     }
                 }
             }
@@ -118,5 +129,19 @@ public class AutoClassLoader {
 
     private static String convertJarEntryNameToClassName(String name) {
         return name.replace(DOT_CLASS, "").replace("/", DOT);
+    }
+
+    private static Class<?> convertClassNameToClass(String name) {
+        try {
+            Class<?> clz = Class.forName(name);
+            if (!clz.isInterface()) {
+                return clz;
+            } else {
+                return null;
+            }
+        } catch (Exception | LinkageError e) {
+            log.debug("Failed convert Class [{}]", name);
+            return null;
+        }
     }
 }
