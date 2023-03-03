@@ -1,4 +1,4 @@
-package io.github.pangzixiang.whatsit.vertx.core.model;
+package io.github.pangzixiang.whatsit.vertx.core.pojo;
 
 import io.vertx.ext.web.RoutingContext;
 import lombok.AllArgsConstructor;
@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RouteHandlerRequest {
-    private RoutingContext routingContext;
+public class EventBusRequest {
+    private Object data;
 }

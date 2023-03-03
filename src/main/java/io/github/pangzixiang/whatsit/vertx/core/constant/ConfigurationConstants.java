@@ -147,4 +147,8 @@ public class ConfigurationConstants {
      * The constant CACHE_AUTO_CREATION.
      */
     public static final String CACHE_AUTO_CREATION = "cache.autoCreation";
+
+    public static final String HEALTH_ENABLE = "health.enable";
+
+    public static final String HEALTH_PATH = "health.path";
 }

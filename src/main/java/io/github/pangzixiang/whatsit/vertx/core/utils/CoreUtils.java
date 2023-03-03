@@ -3,7 +3,6 @@ package io.github.pangzixiang.whatsit.vertx.core.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
@@ -196,8 +195,13 @@ public class CoreUtils {
      */
     public static Object createInstance(Class<?> clz, Object...args) {
         try {
-            Constructor<?> constructor = clz.getConstructor(ApplicationContext.class);
-            return constructor.newInstance(args);
+            Constructor<?>[] constructors = clz.getConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == args.length) {
+                    return constructor.newInstance(args);
+                }
+            }
+            throw new NoSuchMethodException("Cannot find constructor for Class %s, args %s".formatted(clz.getSimpleName(), args));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             log.error("Failed to init Instance for class[{}]", clz.getSimpleName());
             throw new RuntimeException(e);

@@ -4,7 +4,7 @@
 
     <groupId>io.github.pangzixiang.whatsit.vertx</groupId>
     <artifactId>whatsit-core</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
 
     <name>whatsit-core</name>
     <description>Whatsit Vertx Core library</description>
@@ -25,7 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--Specify the version for all dependencies-->
-        <vertx.version>4.3.8</vertx.version>
+        <vertx.version>4.4.0</vertx.version>
         <lombok.version>1.18.24</lombok.version>
         <slf4j.version>2.0.5</slf4j.version>
         <logback.version>1.4.5</logback.version>
@@ -112,6 +112,11 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-circuit-breaker</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-health-check</artifactId>
         </dependency>
 
         <dependency>

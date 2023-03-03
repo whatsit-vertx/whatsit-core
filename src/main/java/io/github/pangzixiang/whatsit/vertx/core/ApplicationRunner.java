@@ -12,7 +12,7 @@ import static io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleCons
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
 /**
- * To startup the Application
+ * To start up the Application
  */
 @Slf4j
 public class ApplicationRunner {
