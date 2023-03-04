@@ -90,8 +90,8 @@ public void someEndpoint(RoutingContext routingContext) {
 > , then it will create the log file under the ./log folder,
 > for details, please refer to whatsit-core/src/main/resources/logback.xml
 
-- Database(Including [Flyway](https://flywaydb.org/) migration)
-1. just to enable the DB connection and Flyway via the conf file:
+- Database
+1. just to enable the DB connection via the conf file:
 ```text
 database: {
   enable: true
@@ -102,10 +102,6 @@ database: {
   eventLoopSize: 2
   connectionTimeout: 30
   idleTimeout: 60
-  flyway: {
-    enable: true
-    location: flyway/migration
-  }
 }
 ```
 2. then you can get the jdbc pool from ApplicationContext.
@@ -242,6 +238,5 @@ public class TestWebSocketController extends AbstractWebSocketController {
 - [Logback](https://github.com/qos-ch/logback)
 - [Slf4j](https://github.com/qos-ch/slf4j)
 - [Lombok](https://github.com/projectlombok/lombok)
-- [Flyway](https://flywaydb.org/)
 - [Swagger](https://github.com/swagger-api/swagger-ui)
 - [Caffeine](https://github.com/ben-manes/caffeine)

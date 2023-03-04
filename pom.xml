@@ -34,7 +34,7 @@
         <janino.version>3.1.9</janino.version>
         <agroal.version>2.0</agroal.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <flyway.version>9.15.1</flyway.version>
+<!--        <flyway.version>9.15.1</flyway.version>-->
         <caffeine.version>3.1.4</caffeine.version>
 <!--        <jackson.version>2.14.2</jackson.version>-->
 
@@ -143,11 +143,11 @@
             <version>${agroal.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.flywaydb</groupId>-->
+<!--            <artifactId>flyway-core</artifactId>-->
+<!--            <version>${flyway.version}</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
