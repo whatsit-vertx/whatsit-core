@@ -188,25 +188,6 @@ public class ApplicationConfiguration {
     }
 
     /**
-     * Is flyway migrate boolean.
-     *
-     * @return the boolean
-     */
-    public Boolean isFlywayMigrate() {
-        return getBoolean(ConfigurationConstants.DATABASE_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_ENABLE)
-                && getBoolean(ConfigurationConstants.DATABASE_FLYWAY_ENABLE) != null && getBoolean(ConfigurationConstants.DATABASE_FLYWAY_ENABLE);
-    }
-
-    /**
-     * Flyway location string.
-     *
-     * @return the string
-     */
-    public String flywayLocation() {
-        return getString(ConfigurationConstants.DATABASE_FLYWAY_LOCATION);
-    }
-
-    /**
      * Gets jdbc pool options.
      *
      * @return the jdbc pool options

@@ -3,7 +3,6 @@ package io.github.pangzixiang.whatsit.vertx.core.verticle;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.scheduler.HealthCheckScheduleJob;
 import io.vertx.circuitbreaker.CircuitBreaker;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.jdbcclient.JDBCPool;
@@ -60,7 +59,7 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
                     if (booleanAsyncResult.succeeded()) {
                         getApplicationContext().setJdbcPool(jdbcPool);
                         log.info("Database Connected [ {} ]!", booleanAsyncResult.result());
-                        CompositeFuture.all(healthCheckSchedule(), flywayMigration())
+                        healthCheckSchedule()
                                 .onComplete(compositeFutureAsyncResult -> {
                                     if (compositeFutureAsyncResult.succeeded()) {
                                         startPromise.complete();
@@ -103,21 +102,5 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
 
     private Future<String> healthCheckSchedule() {
         return deployVerticle(getVertx(), new HealthCheckScheduleJob(getApplicationContext()));
-    }
-
-    private Future<String> flywayMigration() {
-        if (getApplicationContext().getApplicationConfiguration().isFlywayMigrate()) {
-            return deployVerticle(vertx, new FlywayMigrateVerticle(getApplicationContext()))
-                    .onComplete(voidAsyncResult -> {
-                        if (voidAsyncResult.succeeded()){
-                            log.info("FlyWay Migration done!");
-                        } else {
-                            log.error("FlyWay Migration Failed!", voidAsyncResult.cause());
-                        }
-                    });
-        } else {
-            log.debug("Flyway is disabled, thus skip migration!");
-            return Future.succeededFuture();
-        }
     }
 }

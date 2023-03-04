@@ -94,16 +94,6 @@ public class ConfigurationConstants {
     public static final String DATABASE_IDLE_TIMEOUT = "database.idleTimeout";
 
     /**
-     * The constant DATABASE_FLYWAY_ENABLE.
-     */
-    public static final String DATABASE_FLYWAY_ENABLE = "database.flyway.enable";
-
-    /**
-     * The constant DATABASE_FLYWAY_LOCATION.
-     */
-    public static final String DATABASE_FLYWAY_LOCATION = "database.flyway.location";
-
-    /**
      * The constant DATABASE_HEALTH_CHECK_SQL.
      */
     public static final String DATABASE_HEALTH_CHECK_SQL = "database.healthCheckSql";
