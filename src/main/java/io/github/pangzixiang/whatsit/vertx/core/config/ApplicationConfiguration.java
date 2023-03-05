@@ -3,6 +3,7 @@ package io.github.pangzixiang.whatsit.vertx.core.config;
 import com.typesafe.config.*;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants;
+import io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.jdbcclient.JDBCConnectOptions;
@@ -152,7 +153,7 @@ public class ApplicationConfiguration {
 
             vertxOptions.setHAGroup(getString(ConfigurationConstants.HA_GROUP));
 
-            log.info("Init DEFAULT VertxOptions [{}]", vertxOptions);
+            log.info("Init DEFAULT VertxOptions [{}]", CoreUtils.objectToString(vertxOptions));
         }
         return vertxOptions;
     }

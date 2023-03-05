@@ -3,6 +3,7 @@ package io.github.pangzixiang.whatsit.vertx.core.local;
 import io.github.pangzixiang.whatsit.vertx.core.ApplicationRunner;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.local.verticle.TestVerticle;
+import io.github.pangzixiang.whatsit.vertx.core.model.HealthStatus;
 import lombok.extern.slf4j.Slf4j;
 
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
@@ -20,6 +21,9 @@ public class RunWhatsitCoreLocalTest {
 //        applicationContext.getApplicationConfiguration().setHttpServerOptions(new HttpServerOptions().setLogActivity(true));
 //        applicationContext.getApplicationConfiguration().setVertxOptions(new VertxOptions());
         ApplicationRunner.run(applicationContext);
+        applicationContext.getHealthCheckHandler().register("test", promise -> {
+           promise.complete(HealthStatus.succeed());
+        });
         deployVerticle(applicationContext.getVertx(), new TestVerticle());
     }
 }

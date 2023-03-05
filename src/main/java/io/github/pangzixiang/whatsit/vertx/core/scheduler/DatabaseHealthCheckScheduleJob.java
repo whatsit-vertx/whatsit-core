@@ -2,23 +2,28 @@ package io.github.pangzixiang.whatsit.vertx.core.scheduler;
 
 import io.github.pangzixiang.whatsit.vertx.core.annotation.Schedule;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
-import io.vertx.ext.healthchecks.HealthCheckHandler;
-import io.vertx.ext.healthchecks.Status;
+import io.github.pangzixiang.whatsit.vertx.core.handler.HealthCheckHandler;
+import io.github.pangzixiang.whatsit.vertx.core.model.HealthStatus;
 import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+
 /**
  * The type Health check schedule job.
  */
 @Slf4j
-public class HealthCheckScheduleJob extends BaseScheduleJob {
+public class DatabaseHealthCheckScheduleJob extends BaseScheduleJob {
 
     private final String SQL;
 
     @Getter
     private Boolean isHealth = false;
+
+    @Getter
+    private LocalDateTime lastUpdated = LocalDateTime.now();
 
     /**
      * The constant DATABASE_HEALTH_NAME.
@@ -30,13 +35,13 @@ public class HealthCheckScheduleJob extends BaseScheduleJob {
      *
      * @param applicationContext the application context
      */
-    public HealthCheckScheduleJob(ApplicationContext applicationContext) {
+    public DatabaseHealthCheckScheduleJob(ApplicationContext applicationContext) {
         super(applicationContext);
         SQL = applicationContext.getApplicationConfiguration().getHealthCheckSql();
         HealthCheckHandler healthCheckHandler = getApplicationContext().getHealthCheckHandler();
         if (healthCheckHandler != null) {
             healthCheckHandler.register(DATABASE_HEALTH_NAME, promise -> {
-                promise.complete(getIsHealth()? Status.OK(): Status.KO());
+                promise.complete(getIsHealth()? HealthStatus.succeed(getLastUpdated()): HealthStatus.fail(getLastUpdated()));
             });
         }
     }
@@ -50,6 +55,7 @@ public class HealthCheckScheduleJob extends BaseScheduleJob {
                 .preparedQuery(SQL)
                 .execute()
                 .onComplete(rowSetAsyncResult -> {
+                    this.lastUpdated = LocalDateTime.now();
                     if (rowSetAsyncResult.succeeded()) {
                         Row row = rowSetAsyncResult.result().iterator().next();
                         Integer result = row.getInteger(0);
@@ -58,7 +64,11 @@ public class HealthCheckScheduleJob extends BaseScheduleJob {
                             isHealth = true;
                         } else {
                             log.error("Database Health Check Failed, Health Status updated to [FALSE]!");
+                            isHealth = false;
                         }
+                    } else {
+                        log.error("Database Health Check Failed, Health Status updated to [FALSE]!");
+                        isHealth = false;
                     }
                 });
     }

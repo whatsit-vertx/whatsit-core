@@ -1,7 +1,7 @@
 package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
-import io.github.pangzixiang.whatsit.vertx.core.scheduler.HealthCheckScheduleJob;
+import io.github.pangzixiang.whatsit.vertx.core.scheduler.DatabaseHealthCheckScheduleJob;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -101,6 +101,6 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     }
 
     private Future<String> healthCheckSchedule() {
-        return deployVerticle(getVertx(), new HealthCheckScheduleJob(getApplicationContext()));
+        return deployVerticle(getVertx(), new DatabaseHealthCheckScheduleJob(getApplicationContext()));
     }
 }
