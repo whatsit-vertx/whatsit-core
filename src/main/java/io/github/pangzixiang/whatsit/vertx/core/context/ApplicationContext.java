@@ -2,14 +2,13 @@ package io.github.pangzixiang.whatsit.vertx.core.context;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.gson.JsonObject;
 import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
+import io.github.pangzixiang.whatsit.vertx.core.handler.HealthCheckHandler;
 import io.github.pangzixiang.whatsit.vertx.core.pojo.EventBusRequest;
 import io.github.pangzixiang.whatsit.vertx.core.pojo.EventBusRequestCodec;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.healthchecks.HealthCheckHandler;
-import io.vertx.ext.healthchecks.Status;
 import io.vertx.jdbcclient.JDBCPool;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +34,6 @@ public class ApplicationContext {
     @Getter
     private final Vertx vertx;
 
-    @Getter
     @Setter
     private int port;
 
@@ -75,16 +73,13 @@ public class ApplicationContext {
      */
     public final HealthCheckHandler getHealthCheckHandler() {
         if (this.healthCheckHandler == null && getApplicationConfiguration().getBoolean(HEALTH_ENABLE)) {
-            this.healthCheckHandler = HealthCheckHandler.create(getVertx());
-            this.healthCheckHandler.register("app-info", promise -> {
-                JsonObject appInfo = new JsonObject();
-                appInfo.put("name", getApplicationConfiguration().getName());
-                appInfo.put("port", getPort());
-                appInfo.put("start-time", Instant.ofEpochMilli(ManagementFactory.getRuntimeMXBean().getStartTime())
-                        .atZone(ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                promise.complete(Status.OK(appInfo));
-            });
+            JsonObject info = new JsonObject();
+            info.addProperty("name", getApplicationConfiguration().getName());
+            info.addProperty("port", getPort());
+            info.addProperty("start-time", Instant.ofEpochMilli(ManagementFactory.getRuntimeMXBean().getStartTime())
+                    .atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            this.healthCheckHandler = HealthCheckHandler.create(this, info);
         }
         return this.healthCheckHandler;
     }
@@ -137,5 +132,13 @@ public class ApplicationContext {
         }
 
         return caffeine.build();
+    }
+
+    public int getPort() {
+        if (port == 0) {
+            return this.applicationConfiguration.getPort();
+        } else {
+            return port;
+        }
     }
 }
