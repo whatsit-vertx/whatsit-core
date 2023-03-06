@@ -7,6 +7,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -19,7 +20,10 @@ public class AutoClassLoader {
 
     private static final List<Class<?>> allClz = new ArrayList<>();
     private static final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    private static final String[] classPaths = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
+    private static final String[] classPaths = Objects.requireNonNullElseGet(System.getProperty("java.class.path"), () -> {
+        log.error("Failed to get classpath from system property");
+        return "";
+    }).split(System.getProperty("path.separator"));
     private static final String DOT_CLASS = ".class";
     private static final String FILE_SEPARATOR = System.getProperty("file.separator");
     private static final String DOT = ".";
@@ -93,7 +97,6 @@ public class AutoClassLoader {
             }
         } catch (Exception e) {
             log.error("Failed to load Classes...", e);
-            System.exit(-1);
         }
     }
 
