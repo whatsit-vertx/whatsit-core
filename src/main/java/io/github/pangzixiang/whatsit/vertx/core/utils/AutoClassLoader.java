@@ -73,22 +73,22 @@ public class AutoClassLoader {
         try {
             for (String classpath: classPaths) {
                 File classpathFile = new File(classpath);
-                if (classpathFile.exists() && classpathFile.isDirectory()) {
-                    getClassesInPath(classpath, classpath);
-                } else if (classpathFile.exists() && classpathFile.isFile()) {
-                    try (JarFile jarFile = new JarFile(classpathFile)) {
-                        Enumeration<JarEntry> entries = jarFile.entries();;
-                        while (entries.hasMoreElements()) {
-                            JarEntry jarEntry = entries.nextElement();
-                            String name = jarEntry.getName();
-                            if (name.endsWith(DOT_CLASS)) {
-                                Class<?> clz = convertClassNameToClass(convertJarEntryNameToClassName(name));
-                                if (clz != null) allClz.add(clz);
+                if (classpathFile.exists()) {
+                    if (classpathFile.isDirectory()) {
+                        getClassesInPath(classpath, classpath);
+                    } else if (classpathFile.isFile()) {
+                        try (JarFile jarFile = new JarFile(classpathFile)) {
+                            Enumeration<JarEntry> entries = jarFile.entries();;
+                            while (entries.hasMoreElements()) {
+                                JarEntry jarEntry = entries.nextElement();
+                                String name = jarEntry.getName();
+                                if (name.endsWith(DOT_CLASS)) {
+                                    Class<?> clz = convertClassNameToClass(convertJarEntryNameToClassName(name));
+                                    if (clz != null) allClz.add(clz);
+                                }
                             }
                         }
                     }
-                } else {
-                    log.warn("Skip not support classpath [{}]", classpath);
                 }
             }
         } catch (Exception e) {
