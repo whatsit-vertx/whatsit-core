@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.net.JarURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -20,11 +18,8 @@ import java.util.jar.JarFile;
 public class AutoClassLoader {
 
     private static final List<Class<?>> allClz = new ArrayList<>();
-
     private static final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
-    private static final String PROTOCOL_FILE = "file";
-    private static final String PROTOCOL_JAR = "jar";
+    private static final String[] classPaths = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
     private static final String DOT_CLASS = ".class";
     private static final String FILE_SEPARATOR = System.getProperty("file.separator");
     private static final String DOT = ".";
@@ -76,30 +71,29 @@ public class AutoClassLoader {
 
     private static void loadAllClasses() {
         try {
-            Enumeration<URL> dirs = classLoader.getResources("");
-            while (dirs.hasMoreElements()) {
-                URL url = dirs.nextElement();
-                String protocol = url.getProtocol();
-                if (protocol.equals(PROTOCOL_FILE)) {
-                    String path = url.getFile();
-                    getClassesInPath(path, path);
-                } else if (protocol.equals(PROTOCOL_JAR)) {
-                    JarFile jarFile = ((JarURLConnection) url.openConnection()).getJarFile();
-                    Enumeration<JarEntry> entries = jarFile.entries();;
-                    while (entries.hasMoreElements()) {
-                        JarEntry jarEntry = entries.nextElement();
-                        String name = jarEntry.getName();
-                        if (name.endsWith(DOT_CLASS)) {
-                            Class<?> clz = convertClassNameToClass(convertJarEntryNameToClassName(name));
-                            if (clz != null) allClz.add(clz);
+            for (String classpath: classPaths) {
+                File classpathFile = new File(classpath);
+                if (classpathFile.exists() && classpathFile.isDirectory()) {
+                    getClassesInPath(classpath, classpath);
+                } else if (classpathFile.exists() && classpathFile.isFile()) {
+                    try (JarFile jarFile = new JarFile(classpathFile)) {
+                        Enumeration<JarEntry> entries = jarFile.entries();;
+                        while (entries.hasMoreElements()) {
+                            JarEntry jarEntry = entries.nextElement();
+                            String name = jarEntry.getName();
+                            if (name.endsWith(DOT_CLASS)) {
+                                Class<?> clz = convertClassNameToClass(convertJarEntryNameToClassName(name));
+                                if (clz != null) allClz.add(clz);
+                            }
                         }
                     }
                 } else {
-                    log.warn("Skip not support protocol [{}] in [{}]", protocol, url);
+                    log.warn("Skip not support classpath [{}]", classpath);
                 }
             }
         } catch (Exception e) {
             log.error("Failed to load Classes...", e);
+            System.exit(-1);
         }
     }
 
@@ -133,14 +127,13 @@ public class AutoClassLoader {
 
     private static Class<?> convertClassNameToClass(String name) {
         try {
-            Class<?> clz = Class.forName(name);
+            Class<?> clz = Class.forName(name, false, classLoader);
             if (!clz.isInterface()) {
                 return clz;
             } else {
                 return null;
             }
         } catch (Exception | LinkageError e) {
-            log.debug("Failed convert Class [{}]", name);
             return null;
         }
     }
