@@ -23,7 +23,7 @@ public class AutoClassLoader {
     private static final String[] classPaths = Objects.requireNonNullElseGet(System.getProperty("java.class.path"), () -> {
         log.error("Failed to get classpath from system property");
         return "";
-    }).split(System.getProperty("path.separator"));
+    }).split(Objects.requireNonNullElse(System.getProperty("path.separator"), ";"));
     private static final String DOT_CLASS = ".class";
     private static final String FILE_SEPARATOR = System.getProperty("file.separator");
     private static final String DOT = ".";
