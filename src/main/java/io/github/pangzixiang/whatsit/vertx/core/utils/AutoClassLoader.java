@@ -45,7 +45,7 @@ public class AutoClassLoader {
      */
     public static List<Class<?>> getClassesByAnnotation(Class<? extends Annotation> annotation) {
         List<Class<?>> result = allClz.stream().filter(clz -> clz.isAnnotationPresent(annotation)).toList();
-        log.info("Succeed to query Classes {} by Annotation [{}]", result, annotation.getSimpleName());
+        log.debug("Succeed to query Classes {} by Annotation [{}]", result, annotation.getSimpleName());
         return result;
     }
 
@@ -57,7 +57,7 @@ public class AutoClassLoader {
      */
     public static List<Class<?>> getClassesByAbstractClass(Class<?> abstractClass) {
         List<Class<?>> result = allClz.stream().filter(clz -> abstractClass.isAssignableFrom(clz) && clz != abstractClass).toList();
-        log.info("Succeed to query Classes {} by Abstract Class [{}]", result, abstractClass.getSimpleName());
+        log.debug("Succeed to query Classes {} by Abstract Class [{}]", result, abstractClass.getSimpleName());
         return result;
     }
 
@@ -69,7 +69,7 @@ public class AutoClassLoader {
      */
     public static List<Class<?>> getClassesByCustomFilter(Predicate<? super Class<?>> predicate) {
         List<Class<?>> result = allClz.stream().filter(predicate).toList();
-        log.info("Succeed to query Classes {} by custom filter", result);
+        log.debug("Succeed to query Classes {} by custom filter", result);
         return result;
     }
 

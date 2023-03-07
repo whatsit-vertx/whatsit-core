@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * The type Health check handler.
+ */
 @Slf4j
 public class HealthCheckHandlerImpl implements HealthCheckHandler {
 
@@ -28,11 +31,22 @@ public class HealthCheckHandlerImpl implements HealthCheckHandler {
 
     private final Map<String, Handler<Promise<HealthStatus>>> handlerMap = new ConcurrentHashMap<>();
 
+    /**
+     * Instantiates a new Health check handler.
+     *
+     * @param applicationContext the application context
+     */
     public HealthCheckHandlerImpl(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.info = null;
     }
 
+    /**
+     * Instantiates a new Health check handler.
+     *
+     * @param applicationContext the application context
+     * @param info               the info
+     */
     public HealthCheckHandlerImpl(ApplicationContext applicationContext, JsonObject info) {
         this.applicationContext = applicationContext;
         this.info = info;

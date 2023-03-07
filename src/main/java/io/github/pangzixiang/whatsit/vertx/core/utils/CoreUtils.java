@@ -207,9 +207,9 @@ public class CoreUtils {
                     return constructor.newInstance(args);
                 }
             }
-            throw new NoSuchMethodException("Cannot find constructor for Class %s, args %s".formatted(clz.getSimpleName(), args));
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            log.error("Failed to init Instance for class[{}]", clz.getSimpleName());
+            return null;
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            log.error("Failed to init Instance for class[{}]", clz.getSimpleName(), e);
             throw new RuntimeException(e);
         }
     }

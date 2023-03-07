@@ -1,5 +1,6 @@
 package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
+import io.github.pangzixiang.whatsit.vertx.core.annotation.PostDeploy;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.WebSocketAnnotation;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
@@ -8,11 +9,17 @@ import io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants;
 import io.github.pangzixiang.whatsit.vertx.core.utils.AutoClassLoader;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.handler.WebSocketHandler;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.ext.web.Router;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_ENABLE;
 import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_PATH;
@@ -74,7 +81,17 @@ public class ServerStartupVerticle extends CoreVerticle {
 
                             log.debug("added shutdown hook for HTTP Server");
 
-                            promise.complete();
+                            List<Class<?>> postDeployVerticles = AutoClassLoader
+                                    .getClassesByCustomFilter(clz -> clz.isAnnotationPresent(PostDeploy.class) && AbstractVerticle.class.isAssignableFrom(clz));
+
+                            List<Future> futures = new ArrayList<>(postDeployVerticles.stream().sorted(Comparator.comparing(clz -> {
+                                PostDeploy postDeploy = clz.getAnnotation(PostDeploy.class);
+                                return postDeploy.order();
+                            })).map(clz -> (Future) deployVerticle(getVertx(), (Class<? extends AbstractVerticle>) clz, getApplicationContext())).toList());
+
+                            CompositeFuture.all(futures).onComplete(promise::complete);
+
+                            log.info("auto deploy [{}] verticles with annotation [{}]", futures.size(), PostDeploy.class.getName());
                         })
                         .onFailure(failure -> {
                             log.error("Failed to start the application, exiting...");
@@ -102,6 +119,10 @@ public class ServerStartupVerticle extends CoreVerticle {
                         && BaseController.class.isAssignableFrom(clz))
                 .forEach(controller -> {
                     Object controllerInstance = createInstance(controller, getApplicationContext(), router);
+                    if (controllerInstance == null) {
+                        throw new RuntimeException("Cannot find constructor for Class %s, args %s & %s"
+                                .formatted(controller.getSimpleName(), ApplicationContext.class, Router.class));
+                    }
                     deployVerticle(getVertx(), (BaseController) controllerInstance);
                 });
         return router;

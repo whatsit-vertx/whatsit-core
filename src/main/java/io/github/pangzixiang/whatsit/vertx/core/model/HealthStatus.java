@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * The type Health status.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,6 +20,13 @@ public class HealthStatus {
     private JsonObject info;
     private LocalDateTime lastUpdated;
 
+    /**
+     * Succeed health status.
+     *
+     * @param info        the info
+     * @param lastUpdated the last updated
+     * @return the health status
+     */
     public static HealthStatus succeed(JsonObject info, LocalDateTime lastUpdated) {
         return HealthStatus
                 .builder()
@@ -26,14 +36,32 @@ public class HealthStatus {
                 .build();
     }
 
+    /**
+     * Succeed health status.
+     *
+     * @return the health status
+     */
     public static HealthStatus succeed() {
         return succeed(null, LocalDateTime.now());
     }
 
+    /**
+     * Succeed health status.
+     *
+     * @param lastUpdated the last updated
+     * @return the health status
+     */
     public static HealthStatus succeed(LocalDateTime lastUpdated) {
         return succeed(null, lastUpdated);
     }
 
+    /**
+     * Fail health status.
+     *
+     * @param info        the info
+     * @param lastUpdated the last updated
+     * @return the health status
+     */
     public static HealthStatus fail(JsonObject info, LocalDateTime lastUpdated) {
         return HealthStatus
                 .builder()
@@ -43,10 +71,21 @@ public class HealthStatus {
                 .build();
     }
 
+    /**
+     * Fail health status.
+     *
+     * @return the health status
+     */
     public static HealthStatus fail() {
         return fail(null, LocalDateTime.now());
     }
 
+    /**
+     * Fail health status.
+     *
+     * @param lastUpdated the last updated
+     * @return the health status
+     */
     public static HealthStatus fail(LocalDateTime lastUpdated) {
         return fail(null, lastUpdated);
     }

@@ -134,6 +134,11 @@ public class ApplicationContext {
         return caffeine.build();
     }
 
+    /**
+     * Gets port.
+     *
+     * @return the port
+     */
     public int getPort() {
         if (port == 0) {
             return this.applicationConfiguration.getPort();
