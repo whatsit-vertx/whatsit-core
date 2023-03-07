@@ -24,12 +24,10 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     /**
      * Instantiates a new Database connection verticle.
      *
-     * @param applicationContext the application context
      */
-    public DatabaseConnectionVerticle(ApplicationContext applicationContext) {
-        super(applicationContext);
-        this.circuitBreaker = createCircuitBreaker(applicationContext.getVertx());
-        VERIFICATION_SQL = applicationContext.getApplicationConfiguration().getHealthCheckSql();
+    public DatabaseConnectionVerticle() {
+        this.circuitBreaker = createCircuitBreaker(ApplicationContext.getApplicationContext().getVertx());
+        VERIFICATION_SQL = ApplicationContext.getApplicationContext().getApplicationConfiguration().getHealthCheckSql();
     }
 
     @Override
@@ -42,8 +40,8 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     @Override
     public void stop() throws Exception {
         super.stop();
-        if (getApplicationContext().getJdbcPool() != null) {
-            getApplicationContext().getJdbcPool()
+        if (ApplicationContext.getApplicationContext().getJdbcPool() != null) {
+            ApplicationContext.getApplicationContext().getJdbcPool()
                     .close()
                     .onSuccess(success -> log.info("Database Connection Closed!"));
         }
@@ -51,13 +49,13 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
 
     private void connect(Promise<Void> startPromise) {
         JDBCPool jdbcPool = JDBCPool.pool(getVertx(),
-                getApplicationContext().getApplicationConfiguration().getJDBCConnectOptions(),
-                getApplicationContext().getApplicationConfiguration().getJDBCPoolOptions());
+                ApplicationContext.getApplicationContext().getApplicationConfiguration().getJDBCConnectOptions(),
+                ApplicationContext.getApplicationContext().getApplicationConfiguration().getJDBCPoolOptions());
 
         verify(jdbcPool)
                 .onComplete(booleanAsyncResult -> {
                     if (booleanAsyncResult.succeeded()) {
-                        getApplicationContext().setJdbcPool(jdbcPool);
+                        ApplicationContext.getApplicationContext().setJdbcPool(jdbcPool);
                         log.info("Database Connected [ {} ]!", booleanAsyncResult.result());
                         healthCheckSchedule()
                                 .onComplete(compositeFutureAsyncResult -> {
@@ -101,6 +99,6 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     }
 
     private Future<String> healthCheckSchedule() {
-        return deployVerticle(getVertx(), new DatabaseHealthCheckScheduleJob(getApplicationContext()));
+        return deployVerticle(getVertx(), new DatabaseHealthCheckScheduleJob());
     }
 }

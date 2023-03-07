@@ -1,9 +1,7 @@
 package io.github.pangzixiang.whatsit.vertx.core.websocket.handler;
 
 import io.github.pangzixiang.whatsit.vertx.core.annotation.WebSocketAnnotation;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.ServerWebSocket;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,22 +15,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Slf4j
 public class WebSocketHandlerImpl implements WebSocketHandler{
-    private final ApplicationContext applicationContext;
-
-    private final Vertx vertx;
-
     private final ConcurrentMap<String, AbstractWebSocketController> controllerConcurrentMap = new ConcurrentHashMap<>();
-
-    /**
-     * Instantiates a new Web socket handler.
-     *
-     * @param applicationContext the application context
-     * @param vertx              the vertx
-     */
-    public WebSocketHandlerImpl(ApplicationContext applicationContext, Vertx vertx) {
-        this.applicationContext = applicationContext;
-        this.vertx = vertx;
-    }
 
     @Override
     public void handle(ServerWebSocket serverWebSocket) {
@@ -55,8 +38,8 @@ public class WebSocketHandlerImpl implements WebSocketHandler{
         WebSocketAnnotation webSocketAnnotation = clz.getAnnotation(WebSocketAnnotation.class);
         if (webSocketAnnotation != null && StringUtils.isNotBlank(webSocketAnnotation.path())) {
             try {
-                Constructor<? extends AbstractWebSocketController> constructor = clz.getConstructor(ApplicationContext.class, Vertx.class);
-                AbstractWebSocketController o = constructor.newInstance(applicationContext, vertx);
+                Constructor<? extends AbstractWebSocketController> constructor = clz.getConstructor();
+                AbstractWebSocketController o = constructor.newInstance();
                 controllerConcurrentMap.put(webSocketAnnotation.path(), o);
                 log.info("Added WebSocket Controller [{}]", clz.getSimpleName());
             } catch (Exception e) {

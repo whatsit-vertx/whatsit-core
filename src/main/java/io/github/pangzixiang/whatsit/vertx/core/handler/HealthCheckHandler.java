@@ -1,7 +1,6 @@
 package io.github.pangzixiang.whatsit.vertx.core.handler;
 
 import com.google.gson.JsonObject;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -15,22 +14,20 @@ public interface HealthCheckHandler extends Handler<RoutingContext> {
     /**
      * Create health check handler.
      *
-     * @param applicationContext the application context
      * @return the health check handler
      */
-    static HealthCheckHandler create(ApplicationContext applicationContext) {
-        return new HealthCheckHandlerImpl(applicationContext);
+    static HealthCheckHandler create() {
+        return new HealthCheckHandlerImpl();
     }
 
     /**
      * Create health check handler.
      *
-     * @param applicationContext the application context
      * @param info               the info
      * @return the health check handler
      */
-    static HealthCheckHandler create(ApplicationContext applicationContext, JsonObject info) {
-        return new HealthCheckHandlerImpl(applicationContext, info);
+    static HealthCheckHandler create(JsonObject info) {
+        return new HealthCheckHandlerImpl(info);
     }
 
     /**

@@ -2,7 +2,6 @@ package io.github.pangzixiang.whatsit.vertx.core.handler;
 
 import com.google.gson.JsonObject;
 import io.github.pangzixiang.whatsit.vertx.core.constant.HttpConstants;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthCheckResponse;
 import io.github.pangzixiang.whatsit.vertx.core.model.HealthStatus;
 import io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils;
@@ -23,8 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class HealthCheckHandlerImpl implements HealthCheckHandler {
 
-    private final ApplicationContext applicationContext;
-
     private final JsonObject info;
 
     private final Map<String, HealthStatus> resultMap = new ConcurrentHashMap<>();
@@ -34,21 +31,17 @@ public class HealthCheckHandlerImpl implements HealthCheckHandler {
     /**
      * Instantiates a new Health check handler.
      *
-     * @param applicationContext the application context
      */
-    public HealthCheckHandlerImpl(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+    public HealthCheckHandlerImpl() {
         this.info = null;
     }
 
     /**
      * Instantiates a new Health check handler.
      *
-     * @param applicationContext the application context
      * @param info               the info
      */
-    public HealthCheckHandlerImpl(ApplicationContext applicationContext, JsonObject info) {
-        this.applicationContext = applicationContext;
+    public HealthCheckHandlerImpl(JsonObject info) {
         this.info = info;
     }
 

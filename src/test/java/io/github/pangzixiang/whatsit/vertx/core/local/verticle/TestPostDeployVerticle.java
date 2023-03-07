@@ -6,9 +6,4 @@ import io.vertx.core.AbstractVerticle;
 
 @PostDeploy
 public class TestPostDeployVerticle extends AbstractVerticle {
-    private final ApplicationContext applicationContext;
-
-    public TestPostDeployVerticle(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
 }

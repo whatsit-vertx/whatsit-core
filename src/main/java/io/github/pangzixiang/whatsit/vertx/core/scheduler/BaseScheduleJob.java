@@ -1,13 +1,11 @@
 package io.github.pangzixiang.whatsit.vertx.core.scheduler;
 
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigException;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.Schedule;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,18 +22,6 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
     private static final String PERIOD_KEY = "period";
 
     private static final String DELAY_KEY = "delay";
-
-    @Getter
-    private final ApplicationContext applicationContext;
-
-    /**
-     * Instantiates a new Base schedule job.
-     *
-     * @param applicationContext the application context
-     */
-    public BaseScheduleJob(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
 
     /**
      * Execute.
@@ -66,7 +52,7 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
                     long period;
                     long delay;
                     if (StringUtils.isNotBlank(key)) {
-                        Config config = getApplicationContext().getApplicationConfiguration().getConfig(key);
+                        Config config = ApplicationContext.getApplicationContext().getApplicationConfiguration().getConfig(key);
                         period = config.getLong(PERIOD_KEY);
                         delay = config.getLong(DELAY_KEY);
                     } else {

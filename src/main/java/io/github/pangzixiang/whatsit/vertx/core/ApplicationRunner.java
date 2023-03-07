@@ -3,7 +3,6 @@ package io.github.pangzixiang.whatsit.vertx.core;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.PreDeploy;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.utils.AutoClassLoader;
-import io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils;
 import io.github.pangzixiang.whatsit.vertx.core.verticle.DatabaseConnectionVerticle;
 import io.github.pangzixiang.whatsit.vertx.core.verticle.ServerStartupVerticle;
 import io.vertx.core.AbstractVerticle;
@@ -49,10 +48,10 @@ public class ApplicationRunner {
 
         log.info("auto deploy [{}] verticles with annotation [{}]", futures.size(), PreDeploy.class.getName());
 
-        futures.add(deployVerticle(applicationContext.getVertx(), new ServerStartupVerticle(applicationContext)));
+        futures.add(deployVerticle(applicationContext.getVertx(), new ServerStartupVerticle()));
 
         if (applicationContext.getApplicationConfiguration().isDatabaseEnable()) {
-            futures.add(deployVerticle(applicationContext.getVertx(), new DatabaseConnectionVerticle(applicationContext)));
+            futures.add(deployVerticle(applicationContext.getVertx(), new DatabaseConnectionVerticle()));
         }
 
 
@@ -70,11 +69,8 @@ public class ApplicationRunner {
     /**
      * Run application context.
      *
-     * @return the application context
      */
-    public static ApplicationContext run() {
-        ApplicationContext applicationContext = new ApplicationContext();
-        run(applicationContext);
-        return applicationContext;
+    public static void run() {
+        run(ApplicationContext.getApplicationContext());
     }
 }
