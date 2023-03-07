@@ -33,12 +33,10 @@ public class DatabaseHealthCheckScheduleJob extends BaseScheduleJob {
     /**
      * Instantiates a new Health check schedule job.
      *
-     * @param applicationContext the application context
      */
-    public DatabaseHealthCheckScheduleJob(ApplicationContext applicationContext) {
-        super(applicationContext);
-        SQL = applicationContext.getApplicationConfiguration().getHealthCheckSql();
-        HealthCheckHandler healthCheckHandler = getApplicationContext().getHealthCheckHandler();
+    public DatabaseHealthCheckScheduleJob() {
+        SQL = ApplicationContext.getApplicationContext().getApplicationConfiguration().getHealthCheckSql();
+        HealthCheckHandler healthCheckHandler = ApplicationContext.getApplicationContext().getHealthCheckHandler();
         if (healthCheckHandler != null) {
             healthCheckHandler.register(DATABASE_HEALTH_NAME, promise -> {
                 promise.complete(getIsHealth()? HealthStatus.succeed(getLastUpdated()): HealthStatus.fail(getLastUpdated()));
@@ -50,7 +48,7 @@ public class DatabaseHealthCheckScheduleJob extends BaseScheduleJob {
     @Schedule(configKey = "database.healthCheck")
     public void execute() {
         log.debug("Starting to check the Database Health!");
-        JDBCPool jdbcPool = getApplicationContext().getJdbcPool();
+        JDBCPool jdbcPool = ApplicationContext.getApplicationContext().getJdbcPool();
         jdbcPool
                 .preparedQuery(SQL)
                 .execute()

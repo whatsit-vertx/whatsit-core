@@ -14,11 +14,10 @@ public class RunWhatsitCoreLocalTest {
      * -Dcom.sun.management.jmxremote.ssl=false
      */
     public static void main(String[] args) {
-        ApplicationContext applicationContext = new ApplicationContext();
 //        applicationContext.getApplicationConfiguration().setHttpServerOptions(new HttpServerOptions().setLogActivity(true));
 //        applicationContext.getApplicationConfiguration().setVertxOptions(new VertxOptions());
-        ApplicationRunner.run(applicationContext);
-        applicationContext.getHealthCheckHandler().register("test", promise -> {
+        ApplicationRunner.run(ApplicationContext.getApplicationContext());
+        ApplicationContext.getApplicationContext().getHealthCheckHandler().register("test", promise -> {
            promise.complete(HealthStatus.succeed());
         });
     }

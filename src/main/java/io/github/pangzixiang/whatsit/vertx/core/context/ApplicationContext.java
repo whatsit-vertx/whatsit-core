@@ -31,6 +31,8 @@ import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationCon
 @Slf4j
 public class ApplicationContext {
 
+    private static ApplicationContext applicationContext;
+
     @Getter
     private final Vertx vertx;
 
@@ -49,9 +51,21 @@ public class ApplicationContext {
     private final ConcurrentMap<String, Cache<?, ?>> cacheMap;
 
     /**
+     * Gets application context.
+     *
+     * @return the application context
+     */
+    public static ApplicationContext getApplicationContext() {
+        if (applicationContext == null) {
+            applicationContext = new ApplicationContext();
+        }
+        return applicationContext;
+    }
+
+    /**
      * Instantiates a new Application context.
      */
-    public ApplicationContext() {
+    private ApplicationContext() {
         this.applicationConfiguration = new ApplicationConfiguration();
         if (this.applicationConfiguration.isCacheEnable()) {
              this.cacheMap = this.initCacheMap();
@@ -79,7 +93,7 @@ public class ApplicationContext {
             info.addProperty("start-time", Instant.ofEpochMilli(ManagementFactory.getRuntimeMXBean().getStartTime())
                     .atZone(ZoneId.systemDefault())
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            this.healthCheckHandler = HealthCheckHandler.create(this, info);
+            this.healthCheckHandler = HealthCheckHandler.create(info);
         }
         return this.healthCheckHandler;
     }

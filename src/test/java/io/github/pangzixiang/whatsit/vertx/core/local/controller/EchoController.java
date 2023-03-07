@@ -19,8 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController(basePath = "/v1")
 public class EchoController extends BaseController {
-    public EchoController(ApplicationContext applicationContext, Router router) {
-        super(applicationContext, router);
+    public EchoController(Router router) {
+        super(router);
     }
 
     private Cache<String, String> cache;
@@ -29,7 +29,7 @@ public class EchoController extends BaseController {
     public void start() throws Exception {
         getRouter().route().handler(BodyHandler.create());
         getRouter().route().handler(SessionHandler.create(LocalSessionStore.create(getVertx())));
-        cache = (Cache<String, String>) getApplicationContext().getCache("cache2");
+        cache = (Cache<String, String>) ApplicationContext.getApplicationContext().getCache("cache2");
         cache.put("test", "test");
         super.start();
     }

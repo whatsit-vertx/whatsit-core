@@ -32,15 +32,6 @@ import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deplo
 @Slf4j
 public class ServerStartupVerticle extends CoreVerticle {
 
-    /**
-     * Instantiates a new Server startup verticle.
-     *
-     * @param applicationContext the application context
-     */
-    public ServerStartupVerticle(ApplicationContext applicationContext) {
-        super(applicationContext);
-    }
-
     @Override
     public void start() throws Exception {
         super.start();
@@ -53,23 +44,23 @@ public class ServerStartupVerticle extends CoreVerticle {
         if ((Boolean) message.body()) {
             Router router = registerRouter();
 
-            WebSocketHandler webSocketHandler = WebSocketHandler.create(getApplicationContext(), getVertx());
+            WebSocketHandler webSocketHandler = WebSocketHandler.create();
             AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(WebSocketAnnotation.class)
                             && AbstractWebSocketController.class.isAssignableFrom(clz))
                     .forEach(clz -> webSocketHandler.registerController((Class<? extends AbstractWebSocketController>) clz));
 
             getVertx().executeBlocking(promise -> {
                 log.info("Starting HTTP Server...");
-                getVertx().createHttpServer(getApplicationContext().getApplicationConfiguration().getHttpServerOptions())
+                getVertx().createHttpServer(ApplicationContext.getApplicationContext().getApplicationConfiguration().getHttpServerOptions())
                         .requestHandler(router)
                         .webSocketHandler(webSocketHandler)
-                        .listen(getApplicationContext().getApplicationConfiguration().getPort())
+                        .listen(ApplicationContext.getApplicationContext().getApplicationConfiguration().getPort())
                         .onSuccess(success -> {
 
-                            getApplicationContext().setPort(success.actualPort());
+                            ApplicationContext.getApplicationContext().setPort(success.actualPort());
 
                             log.info("HTTP Server for Service [{}] started at port [{}] successfully! -> [{} ms]"
-                                    , getApplicationContext().getApplicationConfiguration().getName().toUpperCase()
+                                    , ApplicationContext.getApplicationContext().getApplicationConfiguration().getName().toUpperCase()
                                     , success.actualPort()
                                     , System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
 
@@ -87,7 +78,7 @@ public class ServerStartupVerticle extends CoreVerticle {
                             List<Future> futures = new ArrayList<>(postDeployVerticles.stream().sorted(Comparator.comparing(clz -> {
                                 PostDeploy postDeploy = clz.getAnnotation(PostDeploy.class);
                                 return postDeploy.order();
-                            })).map(clz -> (Future) deployVerticle(getVertx(), (Class<? extends AbstractVerticle>) clz, getApplicationContext())).toList());
+                            })).map(clz -> (Future) deployVerticle(getVertx(), (Class<? extends AbstractVerticle>) clz)).toList());
 
                             CompositeFuture.all(futures).onComplete(promise::complete);
 
@@ -110,18 +101,18 @@ public class ServerStartupVerticle extends CoreVerticle {
     private Router registerRouter() {
         Router router = Router.router(getVertx());
 
-        if (getApplicationContext().getApplicationConfiguration().getBoolean(HEALTH_ENABLE)) {
-            router.get(getApplicationContext().getApplicationConfiguration().getString(HEALTH_PATH))
-                    .handler(getApplicationContext().getHealthCheckHandler());
+        if (ApplicationContext.getApplicationContext().getApplicationConfiguration().getBoolean(HEALTH_ENABLE)) {
+            router.get(ApplicationContext.getApplicationContext().getApplicationConfiguration().getString(HEALTH_PATH))
+                    .handler(ApplicationContext.getApplicationContext().getHealthCheckHandler());
         }
 
         AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(RestController.class)
                         && BaseController.class.isAssignableFrom(clz))
                 .forEach(controller -> {
-                    Object controllerInstance = createInstance(controller, getApplicationContext(), router);
+                    Object controllerInstance = createInstance(controller, router);
                     if (controllerInstance == null) {
-                        throw new RuntimeException("Cannot find constructor for Class %s, args %s & %s"
-                                .formatted(controller.getSimpleName(), ApplicationContext.class, Router.class));
+                        throw new RuntimeException("Cannot find constructor for Class %s, args %s"
+                                .formatted(controller.getSimpleName(), Router.class));
                     }
                     deployVerticle(getVertx(), (BaseController) controllerInstance);
                 });

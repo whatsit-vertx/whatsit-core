@@ -32,19 +32,14 @@ import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deplo
 public class BaseController extends AbstractVerticle {
 
     @Getter
-    private final ApplicationContext applicationContext;
-
-    @Getter
     private final Router router;
 
     /**
      * Instantiates a new Base controller.
      *
-     * @param applicationContext the application context
      * @param router             the router
      */
-    public BaseController(ApplicationContext applicationContext, Router router) {
-        this.applicationContext = applicationContext;
+    public BaseController(Router router) {
         this.router = router;
     }
 
@@ -64,7 +59,7 @@ public class BaseController extends AbstractVerticle {
                     String path = restController.basePath() + restEndpoint.path();
                     log.debug("Registering path -> {}", path);
 
-                    String url = refactorControllerPath(path, getApplicationContext().getApplicationConfiguration());
+                    String url = refactorControllerPath(path, ApplicationContext.getApplicationContext().getApplicationConfiguration());
 
                     log.debug("Refactor path [{}] to [{}]", path, url);
 
@@ -76,7 +71,7 @@ public class BaseController extends AbstractVerticle {
                                     try {
                                         Method doFilter = httpFilter.getMethod("doFilter", RoutingContext.class);
                                         if (!Modifier.isAbstract(doFilter.getModifiers())) {
-                                            Object filterInstance = createInstance(httpFilter, getApplicationContext());
+                                            Object filterInstance = createInstance(httpFilter);
                                             deployVerticle(getVertx(), (AbstractVerticle) filterInstance)
                                                     .onFailure(failure -> {
                                                         log.error(failure.getMessage(), failure);
