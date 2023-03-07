@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * The type Health check response.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
