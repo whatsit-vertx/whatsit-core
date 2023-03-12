@@ -13,6 +13,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,17 +45,23 @@ public class ServerStartupVerticle extends CoreVerticle {
         if ((Boolean) message.body()) {
             Router router = registerRouter();
 
-            WebSocketHandler webSocketHandler = WebSocketHandler.create();
-            AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(WebSocketAnnotation.class)
-                            && AbstractWebSocketController.class.isAssignableFrom(clz))
-                    .forEach(clz -> webSocketHandler.registerController((Class<? extends AbstractWebSocketController>) clz));
-
             getVertx().executeBlocking(promise -> {
                 log.info("Starting HTTP Server...");
-                getVertx().createHttpServer(ApplicationContext.getApplicationContext().getApplicationConfiguration().getHttpServerOptions())
-                        .requestHandler(router)
-                        .webSocketHandler(webSocketHandler)
-                        .listen(ApplicationContext.getApplicationContext().getApplicationConfiguration().getPort())
+                HttpServer httpServer = getVertx()
+                        .createHttpServer(ApplicationContext.getApplicationContext().getApplicationConfiguration().getHttpServerOptions())
+                        .requestHandler(router);
+
+                List<Class<?>> websocketControllers = AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(WebSocketAnnotation.class)
+                        && AbstractWebSocketController.class.isAssignableFrom(clz));
+
+                if (!websocketControllers.isEmpty()) {
+                    log.info("Start to register websocket {} controllers", websocketControllers.size());
+                    WebSocketHandler webSocketHandler = WebSocketHandler.create();
+                    websocketControllers.forEach(clz -> webSocketHandler.registerController((Class<? extends AbstractWebSocketController>) clz));
+                    httpServer.webSocketHandler(webSocketHandler);
+                }
+
+                httpServer.listen(ApplicationContext.getApplicationContext().getApplicationConfiguration().getPort())
                         .onSuccess(success -> {
 
                             ApplicationContext.getApplicationContext().setPort(success.actualPort());
