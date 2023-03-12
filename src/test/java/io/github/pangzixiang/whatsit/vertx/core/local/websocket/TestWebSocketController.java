@@ -21,7 +21,7 @@ public class TestWebSocketController implements AbstractWebSocketController {
     public Handler<WebSocketFrame> onConnect(ServerWebSocket serverWebSocket) {
         return webSocketFrame -> {
             log.info(webSocketFrame.textData());
-            serverWebSocket.writeTextMessage("ok");
+            serverWebSocket.writeTextMessage(webSocketFrame.textData());
         };
     }
 

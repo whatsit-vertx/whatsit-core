@@ -58,8 +58,6 @@ public class EchoController extends BaseController {
     @RestEndpoint(path = "/post", method = HttpRequestMethod.POST)
     public void postTest(RoutingContext routingContext) {
         log.info(routingContext.body().asString());
-        getVertx().setTimer(10_000, promise -> {
-            sendJsonResponse(routingContext, HttpResponseStatus.OK, "ok");
-        });
+        sendJsonResponse(routingContext, HttpResponseStatus.OK, routingContext.body().asString());
     }
 }
