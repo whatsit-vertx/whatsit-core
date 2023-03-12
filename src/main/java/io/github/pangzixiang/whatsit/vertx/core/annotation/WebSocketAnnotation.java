@@ -17,4 +17,11 @@ public @interface WebSocketAnnotation {
      * @return the string
      */
     String path();
+
+    /**
+     * Filter class [ ].
+     *
+     * @return the class [ ]
+     */
+    Class<?> [] filter() default {};
 }
