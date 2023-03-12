@@ -9,6 +9,6 @@ public class WebSocketTestFilter implements WebsocketFilter {
     @Override
     public boolean doFilter(ServerWebSocket serverWebSocket) {
         log.info("invoke");
-        return true;
+        throw new RuntimeException("test");
     }
 }

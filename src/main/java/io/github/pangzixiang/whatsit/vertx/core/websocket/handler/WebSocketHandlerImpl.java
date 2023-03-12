@@ -92,7 +92,12 @@ public class WebSocketHandlerImpl implements WebSocketHandler {
 
         if (filterObjects != null) {
             for (WebsocketFilterObject filterObject : filterObjects) {
-                isPassed = (boolean) CoreUtils.invokeMethod(filterObject.getDoFilter(), filterObject.getInstance(), serverWebSocket);
+                try {
+                    isPassed = (boolean) CoreUtils.invokeMethod(filterObject.getDoFilter(), filterObject.getInstance(), serverWebSocket);
+                } catch (Exception e) {
+                    log.error("Failed to pass filter", e);
+                    return false;
+                }
             }
         }
         return isPassed;
