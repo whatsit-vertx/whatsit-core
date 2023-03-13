@@ -56,19 +56,20 @@ public class ApplicationContext {
      * @return the application context
      */
     public static ApplicationContext getApplicationContext() {
+        return getApplicationContext(new ApplicationConfiguration());
+    }
+
+    public static ApplicationContext getApplicationContext(ApplicationConfiguration applicationConfiguration) {
         if (applicationContext == null) {
-            applicationContext = new ApplicationContext();
+            applicationContext = new ApplicationContext(applicationConfiguration);
         }
         return applicationContext;
     }
 
-    /**
-     * Instantiates a new Application context.
-     */
-    private ApplicationContext() {
-        this.applicationConfiguration = new ApplicationConfiguration();
+    private ApplicationContext(ApplicationConfiguration applicationConfiguration) {
+        this.applicationConfiguration = applicationConfiguration;
         if (this.applicationConfiguration.isCacheEnable()) {
-             this.cacheMap = this.initCacheMap();
+            this.cacheMap = this.initCacheMap();
         } else {
             this.cacheMap = null;
         }
