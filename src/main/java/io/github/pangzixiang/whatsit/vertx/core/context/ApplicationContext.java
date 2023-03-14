@@ -55,13 +55,16 @@ public class ApplicationContext {
      *
      * @return the application context
      */
-    public static ApplicationContext getApplicationContext() {
-        return getApplicationContext(new ApplicationConfiguration());
-    }
-
     public static ApplicationContext getApplicationContext(ApplicationConfiguration applicationConfiguration) {
         if (applicationContext == null) {
             applicationContext = new ApplicationContext(applicationConfiguration);
+        }
+        return applicationContext;
+    }
+
+    public static ApplicationContext getApplicationContext() {
+        if (applicationContext == null) {
+            applicationContext = new ApplicationContext(new ApplicationConfiguration());
         }
         return applicationContext;
     }
