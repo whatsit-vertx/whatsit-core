@@ -14,7 +14,7 @@
 The whatsit-core library provides the following features:
 
 - Application startup
-1. Setting the environment variable, specify the config file for current env.
+1. Set the environment variable, specify the config file for current env.
 ```shell
 java -Dconfig.resource=local.conf -jar xxxx.jar
 ```
@@ -36,11 +36,11 @@ public class RunWhatsitCoreLocalTest {
 }
 ```
 - Static Config Management
-> We are using [typesafe config](https://github.com/lightbend/config) to manage the config, if you set the 'whatsit.env' to 'local', then it will load the local.conf file from classpath.
+> We are using [typesafe config](https://github.com/lightbend/config) to manage the config
 
 - Controller
-1. Create a new Class to extend the BaseController Class
-2. Create a new method with @RestController method
+1. Create a new Class to extend the BaseController Class and add @RestController
+2. Create a new method with @RestEndpoint method
 3. Finally, the application will automatically register the endpoint and deploy this Verticle.
 
 ```java
@@ -53,16 +53,6 @@ import io.vertx.ext.web.RoutingContext;
 
 @RestController
 public class SomeController extends BaseController {
-
-    public SomeController(ApplicationContext applicationContext) {
-        super(applicationContext);
-    }
-
-    @Override
-    public void start() throws Exception {
-        super.start();
-    }
-
     @RestEndpoint(path = "/something", method = HttpRequestMethod.GET)
     public void someEndpoint(RoutingContext routingContext) {
         sendJsonResponse(routingContext
@@ -76,13 +66,16 @@ public class SomeController extends BaseController {
 1. Create a new Class to extend HttpFilter Class
 2. Override the doFilter method, adding your filter logic in it
 3. Add the filter to the Controller like:
+
 ```java
-@RestController(path = "/something", method = HttpRequestMethod.GET, filter = SomeFilter.class)
-public void someEndpoint(RoutingContext routingContext) {
-    sendJsonResponse(routingContext
-        , HttpResponseStatus.OK
-        , "something");
-}
+import io.github.pangzixiang.whatsit.vertx.core.annotation.RestEndpoint;
+
+@RestEndpoint(path = "/something", method = HttpRequestMethod.GET, filter = SomeFilter.class)
+public void someEndpoint(RoutingContext routingContext){
+        sendJsonResponse(routingContext
+        ,HttpResponseStatus.OK
+        ,"something");
+        }
 ```
 
 - logging
