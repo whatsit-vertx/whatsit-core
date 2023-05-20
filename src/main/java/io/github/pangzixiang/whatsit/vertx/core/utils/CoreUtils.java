@@ -23,15 +23,22 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CoreUtils {
 
+    private CoreUtils() { super(); }
+
     /**
      * The constant gson.
      */
-    public static final Gson gson;
+    public static final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();;
 
     /**
      * The constant gsonNulls.
      */
-    public static final Gson gsonNulls;
+    public static final Gson gsonNulls = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .serializeNulls()
+            .create();
 
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
 
@@ -41,20 +48,8 @@ public class CoreUtils {
 
     private static final long CIRCUIT_BREAKER_TIMEOUT_MS = 30_000;
 
-    static {
-        final LocalDateTimeAdapter localDateTimeAdapter = new LocalDateTimeAdapter();
-        gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, localDateTimeAdapter)
-                .create();
-
-        gsonNulls = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, localDateTimeAdapter)
-                .serializeNulls()
-                .create();
-    }
-
     /**
-     * Object to string string.
+     * Object to string.
      *
      * @param o              the o
      * @param serializeNulls the serialize nulls
