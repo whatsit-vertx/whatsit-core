@@ -6,7 +6,7 @@ import io.github.pangzixiang.whatsit.vertx.core.annotation.WebSocketAnnotation;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.controller.BaseController;
 import io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants;
-import io.github.pangzixiang.whatsit.vertx.core.utils.AutoClassLoader;
+import io.github.pangzixiang.whatsit.vertx.core.utils.ClassScannerUtils;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.handler.WebSocketHandler;
 import io.vertx.core.AbstractVerticle;
@@ -24,6 +24,8 @@ import java.util.List;
 
 import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_ENABLE;
 import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_PATH;
+import static io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants.SERVER_STARTUP_NOTIFICATION_ID;
+import static io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.*;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
@@ -51,8 +53,8 @@ public class ServerStartupVerticle extends CoreVerticle {
                         .createHttpServer(ApplicationContext.getApplicationContext().getApplicationConfiguration().getHttpServerOptions())
                         .requestHandler(router);
 
-                List<Class<?>> websocketControllers = AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(WebSocketAnnotation.class)
-                        && AbstractWebSocketController.class.isAssignableFrom(clz));
+                List<Class<?>> websocketControllers = ClassScannerUtils.getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(WebSocketAnnotation.class)
+                        && classInfo.implementsInterface(AbstractWebSocketController.class));
 
                 if (!websocketControllers.isEmpty()) {
                     log.info("Start to register websocket {} controllers", websocketControllers.size());
@@ -66,11 +68,6 @@ public class ServerStartupVerticle extends CoreVerticle {
 
                             ApplicationContext.getApplicationContext().setPort(success.actualPort());
 
-                            log.info("HTTP Server for Service [{}] started at port [{}] successfully! -> [{} ms]"
-                                    , ApplicationContext.getApplicationContext().getApplicationConfiguration().getName().toUpperCase()
-                                    , success.actualPort()
-                                    , System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
-
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                                 success.close();
                                 log.info("Shutdown HTTP Server, Application total runtime -> {}s"
@@ -79,8 +76,8 @@ public class ServerStartupVerticle extends CoreVerticle {
 
                             log.debug("added shutdown hook for HTTP Server");
 
-                            List<Class<?>> postDeployVerticles = AutoClassLoader
-                                    .getClassesByCustomFilter(clz -> clz.isAnnotationPresent(PostDeploy.class) && AbstractVerticle.class.isAssignableFrom(clz));
+                            List<Class<?>> postDeployVerticles = ClassScannerUtils
+                                    .getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(PostDeploy.class) && classInfo.extendsSuperclass(AbstractVerticle.class));
 
                             List<Future> futures = new ArrayList<>(postDeployVerticles.stream().sorted(Comparator.comparing(clz -> {
                                 PostDeploy postDeploy = clz.getAnnotation(PostDeploy.class);
@@ -98,6 +95,12 @@ public class ServerStartupVerticle extends CoreVerticle {
             }).onFailure(failure -> {
                 log.error(failure.getMessage(), failure);
                 System.exit(-1);
+            }).onComplete(unused -> {
+                getVertx().eventBus().publish(SERVER_STARTUP_NOTIFICATION_ID, true);
+                log.info("HTTP Server for Service [{}] started at port [{}] successfully! -> [{} ms]"
+                        , ApplicationContext.getApplicationContext().getApplicationConfiguration().getName().toUpperCase()
+                        , ApplicationContext.getApplicationContext().getPort()
+                        , System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
             });
         } else {
             log.error("HTTP Server NOT Started, existing...");
@@ -113,8 +116,8 @@ public class ServerStartupVerticle extends CoreVerticle {
                     .handler(ApplicationContext.getApplicationContext().getHealthCheckHandler());
         }
 
-        AutoClassLoader.getClassesByCustomFilter(clz -> clz.isAnnotationPresent(RestController.class)
-                        && BaseController.class.isAssignableFrom(clz))
+        ClassScannerUtils.getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(RestController.class)
+                        && classInfo.extendsSuperclass(BaseController.class))
                 .forEach(controller -> {
                     Object controllerInstance = createInstance(controller, router);
                     if (controllerInstance == null) {

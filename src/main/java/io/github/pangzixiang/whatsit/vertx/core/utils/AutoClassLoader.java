@@ -16,6 +16,7 @@ import java.util.jar.JarFile;
  * The type Auto class loader.
  */
 @Slf4j
+@Deprecated(since = "2.0.16", forRemoval = true)
 public class AutoClassLoader {
 
     private static final List<Class<?>> allClz = new ArrayList<>();
