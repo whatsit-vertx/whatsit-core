@@ -6,6 +6,7 @@ import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,6 +22,7 @@ import java.util.regex.Pattern;
  * The type Core utils.
  */
 @Slf4j
+@UtilityClass
 public class CoreUtils {
 
     /**
