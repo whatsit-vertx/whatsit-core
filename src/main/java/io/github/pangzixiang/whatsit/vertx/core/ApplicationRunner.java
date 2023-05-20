@@ -2,7 +2,7 @@ package io.github.pangzixiang.whatsit.vertx.core;
 
 import io.github.pangzixiang.whatsit.vertx.core.annotation.PreDeploy;
 import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
-import io.github.pangzixiang.whatsit.vertx.core.utils.AutoClassLoader;
+import io.github.pangzixiang.whatsit.vertx.core.utils.ClassScannerUtils;
 import io.github.pangzixiang.whatsit.vertx.core.verticle.DatabaseConnectionVerticle;
 import io.github.pangzixiang.whatsit.vertx.core.verticle.ServerStartupVerticle;
 import io.vertx.core.AbstractVerticle;
@@ -33,13 +33,13 @@ public class ApplicationRunner {
      * @param applicationContext the application context
      */
     @SneakyThrows
-    public static void run(ApplicationContext applicationContext) {
+    public static Future<Void> run(ApplicationContext applicationContext) {
         System.getProperties()
                 .forEach((key, value) ->
                         log.debug("System Property: [{}]->[{}]", key, value));
 
-        List<Class<?>> preDeployVerticles = AutoClassLoader
-                .getClassesByCustomFilter(clz -> clz.isAnnotationPresent(PreDeploy.class) && AbstractVerticle.class.isAssignableFrom(clz));
+        List<Class<?>> preDeployVerticles = ClassScannerUtils
+                .getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(PreDeploy.class) && classInfo.extendsSuperclass(AbstractVerticle.class));
 
         List<Future> futures = new ArrayList<>(preDeployVerticles.stream().sorted(Comparator.comparing(clz -> {
             PreDeploy preDeploy = clz.getAnnotation(PreDeploy.class);
@@ -55,7 +55,7 @@ public class ApplicationRunner {
         }
 
 
-        CompositeFuture.all(futures)
+        return CompositeFuture.all(futures)
                 .onComplete(compositeFutureAsyncResult -> {
                     if (compositeFutureAsyncResult.succeeded()) {
                         applicationContext.getVertx().eventBus().publish(SERVER_STARTUP_VERTICLE_ID, true);
@@ -63,14 +63,14 @@ public class ApplicationRunner {
                         log.error(compositeFutureAsyncResult.cause().getMessage(), compositeFutureAsyncResult.cause());
                         System.exit(-1);
                     }
-                });
+                }).mapEmpty();
     }
 
     /**
      * Run application context.
      *
      */
-    public static void run() {
-        run(ApplicationContext.getApplicationContext());
+    public static Future<Void> run() {
+        return run(ApplicationContext.getApplicationContext());
     }
 }
