@@ -11,9 +11,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -33,6 +32,7 @@ public class EchoController extends BaseController {
     @Path("/echoTest")
     @GET
     @Filter(filter = {EchoFilter.class, TestFilter.class})
+    @Produces(MediaType.APPLICATION_JSON)
     public HttpResponse echoTest() {
         log.info("Echo Controller handle request!");
         return HttpResponse.builder().status(HttpResponseStatus.OK).data("echo").build();
@@ -52,6 +52,8 @@ public class EchoController extends BaseController {
 
     @Path("/post")
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void postTest(RoutingContext routingContext) {
         log.info(routingContext.body().asString());
         sendJsonResponse(routingContext, HttpResponseStatus.OK, routingContext.body().asString());

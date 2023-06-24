@@ -15,7 +15,9 @@ import io.vertx.core.json.Json;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -80,6 +82,7 @@ public class BaseController extends AbstractVerticle {
 
                         Route route = router.route(HttpMethod.valueOf(httpMethod), url);
 
+                        // register router
                         if (httpFilters != null && httpFilters.length > 0) {
                             Arrays.stream(httpFilters)
                                     .forEach(httpFilter -> {
@@ -106,7 +109,18 @@ public class BaseController extends AbstractVerticle {
                         } else {
                             log.info("Endpoint [{} -> {}] registered without Filter!", httpMethod, url);
                         }
+
+                        // register API
+                        Consumes consumes = method.getAnnotation(Consumes.class);
+                        if (consumes != null) {
+                            Arrays.stream(consumes.value()).forEach(route::consumes);
+                        }
+                        Produces produces = method.getAnnotation(Produces.class);
+                        if (produces != null) {
+                            Arrays.stream(produces.value()).forEach(route::produces);
+                        }
                         route.handler(rc -> {
+                            rc.response().putHeader(HttpHeaders.CONTENT_TYPE, rc.getAcceptableContentType());
                             Object result = invokeMethod(method, this, rc);
                             if (result != null && !rc.response().closed() && !rc.response().ended()) {
                                 rc.response().end(result instanceof String ? (String) result: Json.encode(result));
