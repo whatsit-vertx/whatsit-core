@@ -1,8 +1,9 @@
 package io.github.pangzixiang.whatsit.vertx.core.scheduler;
 
 import com.typesafe.config.Config;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.Schedule;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -52,7 +53,7 @@ public abstract class BaseScheduleJob extends AbstractVerticle {
                     long period;
                     long delay;
                     if (StringUtils.isNotBlank(key)) {
-                        Config config = ApplicationContext.getApplicationContext().getApplicationConfiguration().getConfig(key);
+                        Config config = ApplicationConfiguration.getInstance().getConfig(key);
                         period = config.getLong(PERIOD_KEY);
                         delay = config.getLong(DELAY_KEY);
                     } else {

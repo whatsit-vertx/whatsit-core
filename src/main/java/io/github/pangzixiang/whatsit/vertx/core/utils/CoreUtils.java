@@ -1,8 +1,6 @@
 package io.github.pangzixiang.whatsit.vertx.core.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
@@ -12,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,21 +22,6 @@ public class CoreUtils {
 
     private CoreUtils() { super(); }
 
-    /**
-     * The constant gson.
-     */
-    public static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();;
-
-    /**
-     * The constant gsonNulls.
-     */
-    public static final Gson gsonNulls = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .serializeNulls()
-            .create();
-
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
 
     private static final int CIRCUIT_BREAKER_MAX_FAILURES = 3;
@@ -47,60 +29,6 @@ public class CoreUtils {
     private static final int CIRCUIT_BREAKER_MAX_RETRIES = 3;
 
     private static final long CIRCUIT_BREAKER_TIMEOUT_MS = 30_000;
-
-    /**
-     * Object to string.
-     *
-     * @param o              the o
-     * @param serializeNulls the serialize nulls
-     * @return the string
-     */
-    public static String objectToString(Object o, boolean serializeNulls) {
-        if (serializeNulls) {
-            return gsonNulls.toJson(o);
-        } else {
-            return gson.toJson(o);
-        }
-    }
-
-    /**
-     * Object to string string.
-     *
-     * @param o the o
-     * @return the string
-     */
-    public static String objectToString(Object o) {
-        return objectToString(o, false);
-    }
-
-    /**
-     * String to object t.
-     *
-     * @param <T>            the type parameter
-     * @param json           the json
-     * @param clz            the clz
-     * @param serializeNulls the serialize nulls
-     * @return the t
-     */
-    public static <T> T stringToObject(String json, Class<T> clz, boolean serializeNulls) {
-        if (serializeNulls) {
-            return gsonNulls.fromJson(json, clz);
-        } else {
-            return gson.fromJson(json, clz);
-        }
-    }
-
-    /**
-     * String to object t.
-     *
-     * @param <T>  the type parameter
-     * @param json the json
-     * @param clz  the clz
-     * @return the t
-     */
-    public static <T> T stringToObject(String json, Class<T> clz) {
-        return stringToObject(json, clz, false);
-    }
 
     /**
      * Refactor controller path string.
@@ -180,6 +108,9 @@ public class CoreUtils {
      */
     public static Object invokeMethod(Method method, Object instance, Object ... args) {
         try {
+            if (method.getParameterCount() == 0) {
+                return method.invoke(instance);
+            }
             return method.invoke(instance, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
             log.error("Failed to invoke method [{}]", method.getName());

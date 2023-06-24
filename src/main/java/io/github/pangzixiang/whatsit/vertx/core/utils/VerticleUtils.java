@@ -1,6 +1,6 @@
 package io.github.pangzixiang.whatsit.vertx.core.utils;
 
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.vertx.core.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,16 +23,7 @@ public class VerticleUtils {
      * @return the future
      */
     public static Future<String> deployVerticle(Vertx vertx, AbstractVerticle verticle, DeploymentOptions options) {
-        return vertx.deployVerticle(verticle, options)
-                .onSuccess(id -> {
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                        vertx.undeploy(id).onComplete(voidAsyncResult ->
-                                log.info("Undeploy Verticle [{} -> {}]"
-                                        , verticle.getClass().getSimpleName(), id));
-                    }));
-                    log.debug("added shutdown hook for Verticle - [{}] -> {}"
-                            , verticle.getClass().getSimpleName(), id);
-                });
+        return vertx.deployVerticle(verticle, options);
     }
 
     /**

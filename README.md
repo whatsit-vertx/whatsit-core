@@ -30,8 +30,9 @@ public class RunWhatsitCoreLocalTest {
         ApplicationContext applicationContext = new ApplicationContext();
 //        applicationContext.getApplicationConfiguration().setHttpServerOptions(new HttpServerOptions().setLogActivity(true));
 //        applicationContext.getApplicationConfiguration().setVertxOptions(new VertxOptions());
-        ApplicationRunner.run(applicationContext);
-        deployVerticle(applicationContext.getVertx(), new TestVerticle());
+        ApplicationRunner.run(applicationContext).onSuccess(unused -> {
+            deployVerticle(applicationContext.getVertx(), new TestVerticle());
+        });
     }
 }
 ```
@@ -39,25 +40,33 @@ public class RunWhatsitCoreLocalTest {
 > We are using [typesafe config](https://github.com/lightbend/config) to manage the config
 
 - Controller
-1. Create a new Class to extend the BaseController Class and add @RestController
-2. Create a new method with @RestEndpoint method
+1. Create a new Class to extend the BaseController Class and add @Path
+2. Create a new method with @Path method
 3. Finally, the application will automatically register the endpoint and deploy this Verticle.
 
 ```java
 import io.github.pangzixiang.whatsit.vertx.core.RestController;
-import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.HttpRequestMethod;
-import io.github.pangzixiang.whatsit.vertx.core.annotation.RestEndpoint;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.ext.web.RoutingContext;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 
-@RestController
+@Path("/v1")
 public class SomeController extends BaseController {
-    @RestEndpoint(path = "/something", method = HttpRequestMethod.GET)
+    @Path("/test")
+    @GET
     public void someEndpoint(RoutingContext routingContext) {
         sendJsonResponse(routingContext
                 , HttpResponseStatus.OK
                 , "something");
+    }
+
+    @Path("/echoTest")
+    @GET
+    public HttpResponse echoTest() {
+        log.info("Echo Controller handle request!");
+        return HttpResponse.builder().status(HttpResponseStatus.OK).data("echo").build();
     }
 }
 ```
@@ -68,9 +77,14 @@ public class SomeController extends BaseController {
 3. Add the filter to the Controller like:
 
 ```java
-import io.github.pangzixiang.whatsit.vertx.core.annotation.RestEndpoint;
 
-@RestEndpoint(path = "/something", method = HttpRequestMethod.GET, filter = SomeFilter.class)
+import io.github.pangzixiang.whatsit.vertx.core.annotation.Filter;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+
+@Path("/test")
+@GET
+@Filter(filter = {xxx.class})
 public void someEndpoint(RoutingContext routingContext){
         sendJsonResponse(routingContext
         ,HttpResponseStatus.OK
@@ -98,62 +112,6 @@ database: {
 }
 ```
 2. then you can get the jdbc pool from ApplicationContext.
-
-- Swagger(ongoing)
-1. setting the base url to conf file
-```text
-swagger: {
-  baseUrl: /swagger/v1
-}
-```
-
-2. finally open 'localhost:port/swagger/v1', then you can see the Swagger UI.
-
-- Cache([Caffeine](https://github.com/ben-manes/caffeine))
-1. add the cache config to the conf file like below
-```text
-cache: {
-  enable: true,
-  autoCreation: true,
-  custom: [
-    {
-      name: cache1
-      enable: true,
-      expireTime: 1,
-      maxSize: 100,
-      initSize: 10
-    }
-  ]
-}
-```
-> while cache.autoCreation = true, then it will auto create the cache even though does not specify it in the conf file.
-2. Get the Cache from ApplicationContext:
-
-```java
-import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
-import io.github.pangzixiang.whatsit.vertx.core.annotation.RestEndpoint;
-
-@RestController
-public class EchoController extends BaseController {
-    public EchoController(ApplicationContext applicationContext) {
-        super(applicationContext);
-    }
-
-    private Cache<String, String> cache;
-
-    @Override
-    public void start() throws Exception {
-        super.start();
-        cache = (Cache<String, String>) getApplicationContext().getCache("cache2");
-        cache.put("test", "test");
-    }
-
-    @RestEndpoint(path = "/cacheTest", method = HttpRequestMethod.GET)
-    public void testCache(RoutingContext routingContext) {
-        sendJsonResponse(routingContext, HttpResponseStatus.OK, cache.getIfPresent("test"));
-    }
-}
-```
 
 - Schedule Job
 1. extend Class BaseScheduleJob
@@ -217,13 +175,6 @@ public class TestWebSocketController extends AbstractWebSocketController {
 ```
 2. finally it will be automatically registered.
 
-### Upcoming feature:
-- [Swagger](https://github.com/swagger-api/swagger-ui) Integration (ongoing)
-- [Caffeine](https://github.com/ben-manes/caffeine) Cache Integration (done)
-- JUnit
-- Multiple Filter Support (done)
-- TBC
-
 ### Dependencies:
 - [Vert.x](https://vertx.io)
 - [Jackson](https://github.com/FasterXML/jackson)
@@ -231,5 +182,3 @@ public class TestWebSocketController extends AbstractWebSocketController {
 - [Logback](https://github.com/qos-ch/logback)
 - [Slf4j](https://github.com/qos-ch/slf4j)
 - [Lombok](https://github.com/projectlombok/lombok)
-- [Swagger](https://github.com/swagger-api/swagger-ui)
-- [Caffeine](https://github.com/ben-manes/caffeine)

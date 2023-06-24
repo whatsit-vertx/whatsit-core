@@ -1,20 +1,19 @@
 package io.github.pangzixiang.whatsit.vertx.core.annotation;
 
+import io.github.pangzixiang.whatsit.vertx.core.filter.HttpFilter;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The interface Pre deploy.
- */
-@Target({ElementType.TYPE})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PreDeploy {
+public @interface Filter {
     /**
-     * Order int.
+     * Filter class [ ].
      *
-     * @return the int
+     * @return the class [ ]
      */
-    int order() default 99999;
+    Class<? extends HttpFilter>[] filter() default {};
 }

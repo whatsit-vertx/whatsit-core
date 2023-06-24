@@ -1,6 +1,7 @@
 package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.scheduler.DatabaseHealthCheckScheduleJob;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.Future;
@@ -21,13 +22,15 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
 
     private final CircuitBreaker circuitBreaker;
 
+    private final ApplicationConfiguration applicationConfiguration = ApplicationConfiguration.getInstance();
+
     /**
      * Instantiates a new Database connection verticle.
      *
      */
     public DatabaseConnectionVerticle() {
         this.circuitBreaker = createCircuitBreaker(ApplicationContext.getApplicationContext().getVertx());
-        VERIFICATION_SQL = ApplicationContext.getApplicationContext().getApplicationConfiguration().getHealthCheckSql();
+        VERIFICATION_SQL = applicationConfiguration.getHealthCheckSql();
     }
 
     @Override
@@ -38,19 +41,24 @@ public class DatabaseConnectionVerticle extends CoreVerticle {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop(Promise<Void> stopPromise) throws Exception {
         super.stop();
         if (ApplicationContext.getApplicationContext().getJdbcPool() != null) {
             ApplicationContext.getApplicationContext().getJdbcPool()
                     .close()
-                    .onSuccess(success -> log.info("Database Connection Closed!"));
+                    .onSuccess(success -> {
+                        log.info("Database Connection Closed!");
+                        stopPromise.complete();
+                    });
+        } else {
+            stopPromise.complete();
         }
     }
 
     private void connect(Promise<Void> startPromise) {
         JDBCPool jdbcPool = JDBCPool.pool(getVertx(),
-                ApplicationContext.getApplicationContext().getApplicationConfiguration().getJDBCConnectOptions(),
-                ApplicationContext.getApplicationContext().getApplicationConfiguration().getJDBCPoolOptions());
+                applicationConfiguration.getJDBCConnectOptions(),
+                applicationConfiguration.getJDBCPoolOptions());
 
         verify(jdbcPool)
                 .onComplete(booleanAsyncResult -> {

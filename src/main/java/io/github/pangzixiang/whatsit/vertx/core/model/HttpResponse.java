@@ -1,5 +1,6 @@
 package io.github.pangzixiang.whatsit.vertx.core.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.Getter;
 
@@ -15,7 +16,8 @@ public class HttpResponse {
 
     private final LocalDateTime date = LocalDateTime.now(ZoneId.systemDefault());
 
-    private transient final HttpResponseStatus status;
+    @JsonIgnore
+    private final HttpResponseStatus status;
 
     private final int code;
 

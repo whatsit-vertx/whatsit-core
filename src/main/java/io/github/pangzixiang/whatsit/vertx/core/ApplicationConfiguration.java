@@ -1,21 +1,20 @@
-package io.github.pangzixiang.whatsit.vertx.core.config;
+package io.github.pangzixiang.whatsit.vertx.core;
 
 import com.typesafe.config.*;
-import io.github.pangzixiang.whatsit.vertx.core.config.cache.CacheConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants;
-import io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.Json;
 import io.vertx.jdbcclient.JDBCConnectOptions;
 import io.vertx.sqlclient.PoolOptions;
+import jakarta.ws.rs.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
+import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -34,10 +33,22 @@ public class ApplicationConfiguration {
     @Setter
     private HttpServerOptions httpServerOptions;
 
+    @Getter
+    private final List<Class<? extends Annotation>> supportHttpMethodsList = List.of(GET.class, HEAD.class, POST.class, OPTIONS.class, PUT.class, DELETE.class, PATCH.class);
+
+    private static ApplicationConfiguration applicationConfiguration;
+
+    public static ApplicationConfiguration getInstance() {
+        if (applicationConfiguration == null) {
+            applicationConfiguration = new ApplicationConfiguration();
+        }
+        return applicationConfiguration;
+    }
+
     /**
      * Instantiates a new Application configuration.
      */
-    public ApplicationConfiguration() {
+    private ApplicationConfiguration() {
         log.info("LOAD CONFIG FILE [{}]", Objects.requireNonNullElseGet(getConfigResource(),
                 () -> Objects.requireNonNullElse(getConfigFile(), "reference.conf")));
         this.config = ConfigFactory.load();
@@ -153,7 +164,7 @@ public class ApplicationConfiguration {
 
             vertxOptions.setHAGroup(getString(ConfigurationConstants.HA_GROUP));
 
-            log.info("Init DEFAULT VertxOptions [{}]", CoreUtils.objectToString(vertxOptions));
+            log.info("Init DEFAULT VertxOptions [{}]", Json.encode(vertxOptions));
         }
         return vertxOptions;
     }
@@ -239,85 +250,5 @@ public class ApplicationConfiguration {
         jdbcConnectOptions.setPassword(password);
 
         return jdbcConnectOptions;
-    }
-
-    /**
-     * Is cache enable boolean.
-     *
-     * @return the boolean
-     */
-    public Boolean isCacheEnable() {
-        return getBoolean(ConfigurationConstants.CACHE_ENABLE) != null && getBoolean(ConfigurationConstants.CACHE_ENABLE);
-    }
-
-    /**
-     * Is cache auto creation boolean.
-     *
-     * @return the boolean
-     */
-    public Boolean isCacheAutoCreation() {
-        return getBoolean(ConfigurationConstants.CACHE_AUTO_CREATION) != null && getBoolean(ConfigurationConstants.CACHE_AUTO_CREATION);
-    }
-
-    /**
-     * Gets custom cache.
-     *
-     * @return the custom cache
-     */
-    public Map<String, CacheConfiguration> getCustomCache() {
-        Map<String, CacheConfiguration> result = new HashMap<>();
-        List<? extends Config> configList;
-        try {
-            configList = this.config.getConfigList(ConfigurationConstants.CACHE_CUSTOM);
-        } catch (ConfigException e) {
-            log.warn("Custom Config NOT FOUND!");
-            return result;
-        }
-        for (Config c : configList) {
-            CacheConfiguration cacheConfiguration = new CacheConfiguration();
-            String name;
-            try {
-                name = c.getString(ConfigurationConstants.CUSTOM_CACHE_NAME);
-            } catch (ConfigException e) {
-                log.warn("Empty Cache name, hence SKIP!");
-                continue;
-            }
-
-            if (StringUtils.isBlank(name)) {
-                log.warn("Invalid Cache name [{}], hence SKIP", name);
-                continue;
-            }
-
-            try {
-                boolean enable = c.getBoolean(ConfigurationConstants.CUSTOM_CACHE_ENABLE);
-                cacheConfiguration.setEnable(enable);
-            } catch (ConfigException e) {
-                log.warn("Empty Cache Config::enable, hence set to DEFAULT");
-            }
-
-            try {
-                int initSize = c.getInt(ConfigurationConstants.CUSTOM_CACHE_INIT_SIZE);
-                cacheConfiguration.setInitSize(initSize);
-            } catch (ConfigException e) {
-                log.warn("Empty Cache Config::initSize, hence set to DEFAULT");
-            }
-
-            try {
-                int maxSize = c.getInt(ConfigurationConstants.CUSTOM_CACHE_MAX_SIZE);
-                cacheConfiguration.setMaxSize(maxSize);
-            } catch (ConfigException e) {
-                log.warn("Empty Cache Config::maxSize, hence set to DEFAULT");
-            }
-
-            try {
-                int expireTime = c.getInt(ConfigurationConstants.CUSTOM_CACHE_EXPIRE_TIME);
-                cacheConfiguration.setExpireTime(expireTime);
-            } catch (ConfigException e) {
-                log.warn("Empty Cache Config::expireTime, hence set to DEFAULT");
-            }
-
-            result.put(name, cacheConfiguration);
-        }
-        return result;
     }
 }
