@@ -1,7 +1,8 @@
 package io.github.pangzixiang.whatsit.vertx.core.websocket.handler;
 
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.WebSocketAnnotation;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.filter.WebsocketFilter;
 import io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
@@ -55,8 +56,7 @@ public class WebSocketHandlerImpl implements WebSocketHandler {
             try {
                 Constructor<? extends AbstractWebSocketController> constructor = clz.getConstructor();
                 AbstractWebSocketController o = constructor.newInstance();
-                String path = CoreUtils.refactorControllerPath(webSocketAnnotation.path(),
-                        ApplicationContext.getApplicationContext().getApplicationConfiguration());
+                String path = CoreUtils.refactorControllerPath(webSocketAnnotation.path());
                 controllerConcurrentMap.put(path, o);
                 if (webSocketAnnotation.filter().length > 0) {
                     Stream.of(webSocketAnnotation.filter())

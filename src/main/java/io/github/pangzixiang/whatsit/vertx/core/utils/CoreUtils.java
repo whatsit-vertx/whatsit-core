@@ -1,8 +1,5 @@
 package io.github.pangzixiang.whatsit.vertx.core.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import io.github.pangzixiang.whatsit.vertx.core.config.ApplicationConfiguration;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
@@ -12,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,22 +19,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CoreUtils {
 
-    private CoreUtils() { super(); }
-
-    /**
-     * The constant gson.
-     */
-    public static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();;
-
-    /**
-     * The constant gsonNulls.
-     */
-    public static final Gson gsonNulls = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .serializeNulls()
-            .create();
+    private CoreUtils() {
+        super();
+    }
 
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
 
@@ -49,77 +32,21 @@ public class CoreUtils {
     private static final long CIRCUIT_BREAKER_TIMEOUT_MS = 30_000;
 
     /**
-     * Object to string.
-     *
-     * @param o              the o
-     * @param serializeNulls the serialize nulls
-     * @return the string
-     */
-    public static String objectToString(Object o, boolean serializeNulls) {
-        if (serializeNulls) {
-            return gsonNulls.toJson(o);
-        } else {
-            return gson.toJson(o);
-        }
-    }
-
-    /**
-     * Object to string string.
-     *
-     * @param o the o
-     * @return the string
-     */
-    public static String objectToString(Object o) {
-        return objectToString(o, false);
-    }
-
-    /**
-     * String to object t.
-     *
-     * @param <T>            the type parameter
-     * @param json           the json
-     * @param clz            the clz
-     * @param serializeNulls the serialize nulls
-     * @return the t
-     */
-    public static <T> T stringToObject(String json, Class<T> clz, boolean serializeNulls) {
-        if (serializeNulls) {
-            return gsonNulls.fromJson(json, clz);
-        } else {
-            return gson.fromJson(json, clz);
-        }
-    }
-
-    /**
-     * String to object t.
-     *
-     * @param <T>  the type parameter
-     * @param json the json
-     * @param clz  the clz
-     * @return the t
-     */
-    public static <T> T stringToObject(String json, Class<T> clz) {
-        return stringToObject(json, clz, false);
-    }
-
-    /**
      * Refactor controller path string.
      *
-     * @param path                     the path
-     * @param applicationConfiguration the application configuration
+     * @param path the path
      * @return the string
      */
-    public static String refactorControllerPath(String path, ApplicationConfiguration applicationConfiguration) {
+    public static String refactorControllerPath(String path) {
         Matcher matcher = pattern.matcher(path);
         while (matcher.find()) {
             String key = matcher.group(1);
-            String value = applicationConfiguration.getString(key);
-            if (StringUtils.isNotBlank(value)) {
-                log.debug("Parsing Router Path {} with [key: {}, value: {}]", path, key, value);
-                path = path.replace(matcher.group(0), value);
+            if (StringUtils.isNotBlank(key)) {
+                log.debug("Parsing Router Path {} to Vertx standard", path);
+                path = path.replace(matcher.group(0), ":" + key);
             } else {
-                String err = String.format("Failed to parse router URL [%s]! [key: %s, value: %s]"
-                        , path, key, value);
+                String err = String.format("Failed to parse router URL [%s]!"
+                        , path);
                 throw new IllegalArgumentException(err);
             }
         }
@@ -178,7 +105,7 @@ public class CoreUtils {
      * @param args     the args
      * @return the object
      */
-    public static Object invokeMethod(Method method, Object instance, Object ... args) {
+    public static Object invokeMethod(Method method, Object instance, Object... args) {
         try {
             return method.invoke(instance, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -194,7 +121,7 @@ public class CoreUtils {
      * @param args the args
      * @return the object
      */
-    public static Object createInstance(Class<?> clz, Object...args) {
+    public static Object createInstance(Class<?> clz, Object... args) {
         try {
             Constructor<?>[] constructors = clz.getConstructors();
             for (Constructor<?> constructor : constructors) {

@@ -10,7 +10,7 @@ import io.vertx.core.http.WebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@WebSocketAnnotation(path = "{ws.path1}/ws", filter = {WebSocketTestFilter.class, WebSocketTestFilter2.class})
+@WebSocketAnnotation(path = "/ws", filter = {WebSocketTestFilter.class, WebSocketTestFilter2.class})
 public class TestWebSocketController implements AbstractWebSocketController {
     @Override
     public void startConnect(ServerWebSocket serverWebSocket) {

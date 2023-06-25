@@ -1,31 +1,23 @@
 package io.github.pangzixiang.whatsit.vertx.core.verticle;
 
-import io.github.pangzixiang.whatsit.vertx.core.annotation.PostDeploy;
-import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.WebSocketAnnotation;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.github.pangzixiang.whatsit.vertx.core.controller.BaseController;
-import io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants;
 import io.github.pangzixiang.whatsit.vertx.core.utils.ClassScannerUtils;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.controller.AbstractWebSocketController;
 import io.github.pangzixiang.whatsit.vertx.core.websocket.handler.WebSocketHandler;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.eventbus.Message;
+import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
+import jakarta.ws.rs.Path;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
-import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_ENABLE;
-import static io.github.pangzixiang.whatsit.vertx.core.constant.ConfigurationConstants.HEALTH_PATH;
-import static io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants.SERVER_STARTUP_NOTIFICATION_ID;
-import static io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.*;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
@@ -35,22 +27,18 @@ import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deplo
 @Slf4j
 public class ServerStartupVerticle extends CoreVerticle {
 
+    private HttpServer httpServer;
+
     @Override
-    public void start() throws Exception {
+    public void start(Promise<Void> startPromise) throws Exception {
         super.start();
-        getVertx().eventBus().consumer(CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID).handler(this::start)
-                .exceptionHandler(exception -> log.error(exception.getMessage(), exception))
-                .completionHandler(complete -> log.debug("EventBus Consumer [{}] registered", CoreVerticleConstants.SERVER_STARTUP_VERTICLE_ID));
-    }
+        Future<Router> routerFuture = registerRouter();
 
-    private void start(Message<Object> message) {
-        if ((Boolean) message.body()) {
-            Router router = registerRouter();
-
+        routerFuture.onSuccess(router -> {
             getVertx().executeBlocking(promise -> {
                 log.info("Starting HTTP Server...");
-                HttpServer httpServer = getVertx()
-                        .createHttpServer(ApplicationContext.getApplicationContext().getApplicationConfiguration().getHttpServerOptions())
+                httpServer = getVertx()
+                        .createHttpServer(ApplicationConfiguration.getInstance().getHttpServerOptions())
                         .requestHandler(router);
 
                 List<Class<?>> websocketControllers = ClassScannerUtils.getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(WebSocketAnnotation.class)
@@ -63,30 +51,10 @@ public class ServerStartupVerticle extends CoreVerticle {
                     httpServer.webSocketHandler(webSocketHandler);
                 }
 
-                httpServer.listen(ApplicationContext.getApplicationContext().getApplicationConfiguration().getPort())
+                httpServer.listen(ApplicationConfiguration.getInstance().getPort())
                         .onSuccess(success -> {
-
                             ApplicationContext.getApplicationContext().setPort(success.actualPort());
-
-                            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                                success.close();
-                                log.info("Shutdown HTTP Server, Application total runtime -> {}s"
-                                        , (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000);
-                            }));
-
-                            log.debug("added shutdown hook for HTTP Server");
-
-                            List<Class<?>> postDeployVerticles = ClassScannerUtils
-                                    .getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(PostDeploy.class) && classInfo.extendsSuperclass(AbstractVerticle.class));
-
-                            List<Future> futures = new ArrayList<>(postDeployVerticles.stream().sorted(Comparator.comparing(clz -> {
-                                PostDeploy postDeploy = clz.getAnnotation(PostDeploy.class);
-                                return postDeploy.order();
-                            })).map(clz -> (Future) deployVerticle(getVertx(), (Class<? extends AbstractVerticle>) clz)).toList());
-
-                            CompositeFuture.all(futures).onComplete(promise::complete);
-
-                            log.info("auto deploy [{}] verticles with annotation [{}]", futures.size(), PostDeploy.class.getName());
+                            promise.complete();
                         })
                         .onFailure(failure -> {
                             log.error("Failed to start the application, exiting...");
@@ -94,29 +62,40 @@ public class ServerStartupVerticle extends CoreVerticle {
                         });
             }).onFailure(failure -> {
                 log.error(failure.getMessage(), failure);
+                startPromise.fail(failure);
                 System.exit(-1);
             }).onComplete(unused -> {
-                getVertx().eventBus().publish(SERVER_STARTUP_NOTIFICATION_ID, true);
                 log.info("HTTP Server for Service [{}] started at port [{}] successfully! -> [{} ms]"
-                        , ApplicationContext.getApplicationContext().getApplicationConfiguration().getName().toUpperCase()
+                        , ApplicationConfiguration.getInstance().getName().toUpperCase()
                         , ApplicationContext.getApplicationContext().getPort()
                         , System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
+                startPromise.complete();
+            });
+        }).onFailure(throwable -> {
+            log.error(throwable.getMessage(), throwable);
+            startPromise.fail(throwable);
+            System.exit(-1);
+        });
+    }
+    @Override
+    public void stop(Promise<Void> stopPromise) throws Exception {
+        if (httpServer != null) {
+            httpServer.close().onComplete(unused -> {
+                log.info("Shutdown HTTP Server, Application total runtime -> {}s"
+                        , (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000);
+                stopPromise.complete();
             });
         } else {
-            log.error("HTTP Server NOT Started, existing...");
-            System.exit(-1);
+            stopPromise.complete();
         }
     }
 
-    private Router registerRouter() {
+    private Future<Router> registerRouter() {
         Router router = Router.router(getVertx());
 
-        if (ApplicationContext.getApplicationContext().getApplicationConfiguration().getBoolean(HEALTH_ENABLE)) {
-            router.get(ApplicationContext.getApplicationContext().getApplicationConfiguration().getString(HEALTH_PATH))
-                    .handler(ApplicationContext.getApplicationContext().getHealthCheckHandler());
-        }
+        List<Future<String>> controllerRegisterFutures = new ArrayList<>();
 
-        ClassScannerUtils.getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(RestController.class)
+        ClassScannerUtils.getClassesByCustomFilter(classInfo -> classInfo.hasAnnotation(Path.class)
                         && classInfo.extendsSuperclass(BaseController.class))
                 .forEach(controller -> {
                     Object controllerInstance = createInstance(controller, router);
@@ -124,8 +103,8 @@ public class ServerStartupVerticle extends CoreVerticle {
                         throw new RuntimeException("Cannot find constructor for Class %s, args %s"
                                 .formatted(controller.getSimpleName(), Router.class));
                     }
-                    deployVerticle(getVertx(), (BaseController) controllerInstance);
+                    controllerRegisterFutures.add(deployVerticle(getVertx(), (BaseController) controllerInstance));
                 });
-        return router;
+        return Future.all(controllerRegisterFutures).map(router);
     }
 }

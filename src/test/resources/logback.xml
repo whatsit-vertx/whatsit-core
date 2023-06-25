@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                %magenta(%d{ISO8601}) %highlight(%-5level) [%cyan(%t)] %green(%C): %msg%n%throwable
+            </Pattern>
+        </encoder>
+    </appender>
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+<!--    <property name="ENV1" value="${config.resource:-local}"/>-->
+<!--    <property name="ENV2" value="${config.file:-local}"/>-->
+<!--    <if condition='p("ENV1").contains("local") || p("ENV2").contains("local")'>-->
+<!--        <then>-->
+<!--            <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">-->
+<!--                <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">-->
+<!--                    <Pattern>-->
+<!--                        %magenta(%d{ISO8601}) %highlight(%-5level) [%cyan(%t)] %green(%C): %msg%n%throwable-->
+<!--                    </Pattern>-->
+<!--                </encoder>-->
+<!--            </appender>-->
+<!--            <root level="DEBUG">-->
+<!--                <appender-ref ref="CONSOLE"/>-->
+<!--            </root>-->
+<!--        </then>-->
+<!--        <else>-->
+<!--            <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--                <file>./log/whatsit.log</file>-->
+<!--                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
+<!--                    <fileNamePattern>./log/whatsit-%d{yyyy-MM-dd}.%i.log</fileNamePattern>-->
+<!--                    <maxFileSize>10MB</maxFileSize>-->
+<!--                    <maxHistory>10</maxHistory>-->
+<!--                    <totalSizeCap>500MB</totalSizeCap>-->
+<!--                </rollingPolicy>-->
+<!--                <encoder>-->
+<!--                    <pattern>%d{ISO8601} %-5level [%thread] %C: %msg%n%throwable</pattern>-->
+<!--                </encoder>-->
+<!--            </appender>-->
+<!--            <root level="INFO">-->
+<!--                <appender-ref ref="FILE"/>-->
+<!--            </root>-->
+<!--        </else>-->
+<!--    </if>-->
+</configuration>

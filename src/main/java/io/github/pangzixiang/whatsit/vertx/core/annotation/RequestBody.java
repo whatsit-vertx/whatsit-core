@@ -5,16 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The interface Pre deploy.
- */
-@Target({ElementType.TYPE})
+@Target({ ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PreDeploy {
-    /**
-     * Order int.
-     *
-     * @return the int
-     */
-    int order() default 99999;
+public @interface RequestBody {
 }

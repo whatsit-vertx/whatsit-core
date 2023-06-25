@@ -1,29 +1,27 @@
 package io.github.pangzixiang.whatsit.vertx.core.controller;
 
-import io.github.pangzixiang.whatsit.vertx.core.annotation.RestController;
-import io.github.pangzixiang.whatsit.vertx.core.annotation.RestEndpoint;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
-import io.github.pangzixiang.whatsit.vertx.core.filter.HttpFilter;
+import io.github.pangzixiang.whatsit.vertx.core.model.EndpointInfo;
 import io.github.pangzixiang.whatsit.vertx.core.model.HttpResponse;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.Json;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import jakarta.ws.rs.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import static io.github.pangzixiang.whatsit.vertx.core.constant.HttpConstants.*;
 import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.*;
-import static io.github.pangzixiang.whatsit.vertx.core.utils.CoreUtils.invokeMethod;
-import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deployVerticle;
 
 /**
  * The type Base controller.
@@ -37,7 +35,7 @@ public class BaseController extends AbstractVerticle {
     /**
      * Instantiates a new Base controller.
      *
-     * @param router             the router
+     * @param router the router
      */
     public BaseController(Router router) {
         this.router = router;
@@ -47,51 +45,47 @@ public class BaseController extends AbstractVerticle {
     public void start() throws Exception {
         log.info("Start to register Controller [{}]", this.getClass().getSimpleName());
         Method[] methods = this.getClass().getMethods();
-        RestController restController = this.getClass().getAnnotation(RestController.class);
+        Path basePath = this.getClass().getAnnotation(Path.class);
+
         Arrays.stream(methods)
-                .filter(method -> method.getAnnotation(RestEndpoint.class) != null)
+                .filter(method -> method.getAnnotation(Path.class) != null)
                 .sorted(Comparator.comparing(Method::getName))
-                .forEach(method -> {
-                    RestEndpoint restEndpoint = method.getAnnotation(RestEndpoint.class);
-                    method.setAccessible(true);
-                    Class<? extends HttpFilter>[] httpFilters = restEndpoint.filter();
-
-                    String path = restController.basePath() + restEndpoint.path();
-                    log.debug("Registering path -> {}", path);
-
-                    String url = refactorControllerPath(path, ApplicationContext.getApplicationContext().getApplicationConfiguration());
-
-                    log.debug("Refactor path [{}] to [{}]", path, url);
-
-                    Route route = router.route(HttpMethod.valueOf(restEndpoint.method().name()), url);
-
-                    if (httpFilters.length > 0) {
-                        Arrays.stream(httpFilters)
-                                .forEach(httpFilter -> {
-                                    try {
-                                        Method doFilter = httpFilter.getMethod("doFilter", RoutingContext.class);
-                                        if (!Modifier.isAbstract(doFilter.getModifiers())) {
-                                            Object filterInstance = createInstance(httpFilter);
-                                            deployVerticle(getVertx(), (AbstractVerticle) filterInstance)
-                                                    .onFailure(failure -> {
-                                                        log.error(failure.getMessage(), failure);
-                                                        System.exit(-1);
-                                                    });
-                                            doFilter.setAccessible(true);
-                                            route.handler(filter -> invokeMethod(doFilter, filterInstance, filter));
-                                        } else {
-                                            log.warn("Skip Invalid Filter [{}]!", httpFilter.getSimpleName());
-                                        }
-                                    } catch (NoSuchMethodException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                });
-                        log.info("Endpoint [{} -> {}] registered with Filter -> {}!"
-                                , restEndpoint.method(), url, httpFilters);
-                    } else {
-                        log.info("Endpoint [{} -> {}] registered without Filter!", restEndpoint.method(), url);
+                .map(method -> new EndpointInfo(getVertx(), method))
+                .forEach(endpointInfo -> {
+                    String baseUri = basePath.value();
+                    if (!baseUri.startsWith("/")) {
+                        baseUri = "/" + baseUri;
                     }
-                    route.handler(rc -> invokeMethod(method, this, rc));
+                    String path = baseUri + endpointInfo.getUri();
+                    String httpMethod = endpointInfo.getHttpMethod();
+                    if (StringUtils.isEmpty(endpointInfo.getHttpMethod())) {
+                        log.warn("Won't register {} for path {} due to invalid http method {}", endpointInfo.getName(), path, httpMethod);
+                    } else {
+                        log.debug("Registering path -> {}, method -> {}", path, httpMethod);
+                        String url = refactorControllerPath(path);
+                        log.debug("Refactor path [{}] to [{}]", path, url);
+                        Route route = router.route(HttpMethod.valueOf(httpMethod), url);
+                        if (!endpointInfo.getFilterFunctions().isEmpty()) {
+                            endpointInfo.getFilterFunctions().forEach(routingContextObjectFunction -> route.handler(routingContextObjectFunction::apply));
+                            log.info("Endpoint [{} -> {}] registered with Filter -> {}!"
+                                    , httpMethod, url, endpointInfo.getFilterNames());
+                        } else {
+                            log.info("Endpoint [{} -> {}] registered without Filter!", httpMethod, url);
+                        }
+                        if (endpointInfo.getConsumeTypes() != null) {
+                            Arrays.stream(endpointInfo.getConsumeTypes()).forEach(route::consumes);
+                        }
+                        if (endpointInfo.getProduceTypes() != null) {
+                            Arrays.stream(endpointInfo.getProduceTypes()).forEach(route::produces);
+                        }
+                        route.handler(routingContext -> {
+                            routingContext.response().putHeader(HttpHeaders.CONTENT_TYPE, routingContext.getAcceptableContentType());
+                            Object result = endpointInfo.getExecuteResult().apply(this, routingContext);
+                            if (result != null && !routingContext.response().closed() && !routingContext.response().ended()) {
+                                routingContext.response().end(result instanceof String ? (String) result : Json.encode(result));
+                            }
+                        });
+                    }
                 });
         log.info("Succeed to register Controller [{}]!", this.getClass().getSimpleName());
     }
@@ -106,9 +100,9 @@ public class BaseController extends AbstractVerticle {
      */
     public Future<Void> sendJsonResponse(RoutingContext routingContext, HttpResponseStatus status, Object data) {
         return routingContext.response()
-                .putHeader(CONTENT_TYPE, CONTENT_TYPE_JSON)
+                .putHeader(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString())
                 .setStatusCode(status.code())
-                .end(objectToString(HttpResponse.builder().status(status).data(data).build()))
+                .end(Json.encode(HttpResponse.builder().status(status).data(data).build()))
                 .onSuccess(success -> log.info("Succeed to send response to {}", routingContext.normalizedPath()))
                 .onFailure(throwable -> log.error("Failed to send response to {}", routingContext.normalizedPath(), throwable));
     }

@@ -1,17 +1,15 @@
-package io.github.pangzixiang.whatsit.vertx.core.pojo;
+package io.github.pangzixiang.whatsit.vertx.core.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * The type Event bus request.
- */
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventBusRequest {
-    private Object data;
+@Builder
+public class TestPojo {
+    private String key;
+    private String value;
 }

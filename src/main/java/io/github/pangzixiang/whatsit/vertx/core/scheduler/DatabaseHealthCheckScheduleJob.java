@@ -1,9 +1,8 @@
 package io.github.pangzixiang.whatsit.vertx.core.scheduler;
 
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.Schedule;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
-import io.github.pangzixiang.whatsit.vertx.core.handler.HealthCheckHandler;
-import io.github.pangzixiang.whatsit.vertx.core.model.HealthStatus;
+import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
 import lombok.Getter;
@@ -20,28 +19,17 @@ public class DatabaseHealthCheckScheduleJob extends BaseScheduleJob {
     private final String SQL;
 
     @Getter
-    private Boolean isHealth = false;
-
-    @Getter
     private LocalDateTime lastUpdated = LocalDateTime.now();
 
-    /**
-     * The constant DATABASE_HEALTH_NAME.
-     */
-    public static final String DATABASE_HEALTH_NAME = "Database";
+    public static final String APPLICATION_HEALTH = "application-health";
+    public static final String DATABASE_HEALTH = "database";
 
     /**
      * Instantiates a new Health check schedule job.
      *
      */
     public DatabaseHealthCheckScheduleJob() {
-        SQL = ApplicationContext.getApplicationContext().getApplicationConfiguration().getHealthCheckSql();
-        HealthCheckHandler healthCheckHandler = ApplicationContext.getApplicationContext().getHealthCheckHandler();
-        if (healthCheckHandler != null) {
-            healthCheckHandler.register(DATABASE_HEALTH_NAME, promise -> {
-                promise.complete(getIsHealth()? HealthStatus.succeed(getLastUpdated()): HealthStatus.fail(getLastUpdated()));
-            });
-        }
+        SQL = ApplicationConfiguration.getInstance().getHealthCheckSql();
     }
 
     @Override
@@ -59,14 +47,14 @@ public class DatabaseHealthCheckScheduleJob extends BaseScheduleJob {
                         Integer result = row.getInteger(0);
                         if (result.equals(1)) {
                             log.debug("Database Health Check Done!");
-                            isHealth = true;
+                            getVertx().sharedData().getLocalMap(APPLICATION_HEALTH).put(DATABASE_HEALTH, true);
                         } else {
                             log.error("Database Health Check Failed, Health Status updated to [FALSE]!");
-                            isHealth = false;
+                            getVertx().sharedData().getLocalMap(APPLICATION_HEALTH).put(DATABASE_HEALTH, false);
                         }
                     } else {
                         log.error("Database Health Check Failed, Health Status updated to [FALSE]!");
-                        isHealth = false;
+                        getVertx().sharedData().getLocalMap(APPLICATION_HEALTH).put(DATABASE_HEALTH, false);
                     }
                 });
     }

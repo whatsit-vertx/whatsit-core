@@ -3,7 +3,6 @@ package io.github.pangzixiang.whatsit.vertx.core.utils;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
-import io.github.pangzixiang.whatsit.vertx.core.context.ApplicationContext;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,21 +11,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static io.github.pangzixiang.whatsit.vertx.core.constant.CoreVerticleConstants.SERVER_STARTUP_NOTIFICATION_ID;
-
 @UtilityClass
 @Slf4j
 public class ClassScannerUtils {
 
     private static ScanResult scanResult = null;
-
-    static {
-        ApplicationContext.getApplicationContext().getVertx().eventBus().consumer(SERVER_STARTUP_NOTIFICATION_ID)
-                .handler(unused -> {
-                    closeScanResult();
-                    log.debug("Triggerred closing classes scan result after application startup");
-                });
-    }
 
     private static <T> List<T> getClassScanResult(Function<ScanResult, List<T>> function) {
         if (scanResult == null) {
