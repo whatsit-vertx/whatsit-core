@@ -3,9 +3,11 @@ package io.github.pangzixiang.whatsit.vertx.core.controller;
 import io.github.pangzixiang.whatsit.vertx.core.BaseAppTest;
 import io.github.pangzixiang.whatsit.vertx.core.ApplicationContext;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
+import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +40,7 @@ public class RestControllerTest extends BaseAppTest {
         JsonObject jsonObject = new JsonObject();
         jsonObject.put("test", "test");
         webClient.post(ApplicationContext.getApplicationContext().getPort(), "localhost", "/v1/post")
+                .putHeader(HttpHeaders.CONTENT_TYPE.toString(), MediaType.APPLICATION_JSON)
                 .sendBuffer(Buffer.buffer(jsonObject.encode()))
                 .onComplete(vertxTestContext.succeeding(response -> {
                     vertxTestContext.verify(() -> {

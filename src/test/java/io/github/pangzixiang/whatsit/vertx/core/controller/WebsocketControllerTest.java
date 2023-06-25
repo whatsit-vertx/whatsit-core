@@ -21,7 +21,7 @@ public class WebsocketControllerTest extends BaseAppTest {
 
     @Test
     void test(VertxTestContext vertxTestContext) {
-        httpClient.webSocket(ApplicationContext.getApplicationContext().getPort(), "localhost", "/v1/ws")
+        httpClient.webSocket(ApplicationContext.getApplicationContext().getPort(), "localhost", "/ws")
                 .onComplete(vertxTestContext.succeeding(ws -> {
                     String testString = String.valueOf(RandomUtils.nextDouble());
                     ws.writeTextMessage(testString);
