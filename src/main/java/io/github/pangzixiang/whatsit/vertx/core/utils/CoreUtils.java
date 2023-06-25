@@ -1,6 +1,5 @@
 package io.github.pangzixiang.whatsit.vertx.core.utils;
 
-import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
@@ -20,7 +19,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CoreUtils {
 
-    private CoreUtils() { super(); }
+    private CoreUtils() {
+        super();
+    }
 
     private static final Pattern pattern = Pattern.compile("\\{(.*?)}");
 
@@ -33,21 +34,19 @@ public class CoreUtils {
     /**
      * Refactor controller path string.
      *
-     * @param path                     the path
-     * @param applicationConfiguration the application configuration
+     * @param path the path
      * @return the string
      */
-    public static String refactorControllerPath(String path, ApplicationConfiguration applicationConfiguration) {
+    public static String refactorControllerPath(String path) {
         Matcher matcher = pattern.matcher(path);
         while (matcher.find()) {
             String key = matcher.group(1);
-            String value = applicationConfiguration.getString(key);
-            if (StringUtils.isNotBlank(value)) {
-                log.debug("Parsing Router Path {} with [key: {}, value: {}]", path, key, value);
-                path = path.replace(matcher.group(0), value);
+            if (StringUtils.isNotBlank(key)) {
+                log.debug("Parsing Router Path {} to Vertx standard", path);
+                path = path.replace(matcher.group(0), ":" + key);
             } else {
-                String err = String.format("Failed to parse router URL [%s]! [key: %s, value: %s]"
-                        , path, key, value);
+                String err = String.format("Failed to parse router URL [%s]!"
+                        , path);
                 throw new IllegalArgumentException(err);
             }
         }
@@ -106,11 +105,8 @@ public class CoreUtils {
      * @param args     the args
      * @return the object
      */
-    public static Object invokeMethod(Method method, Object instance, Object ... args) {
+    public static Object invokeMethod(Method method, Object instance, Object... args) {
         try {
-            if (method.getParameterCount() == 0) {
-                return method.invoke(instance);
-            }
             return method.invoke(instance, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
             log.error("Failed to invoke method [{}]", method.getName());
@@ -125,7 +121,7 @@ public class CoreUtils {
      * @param args the args
      * @return the object
      */
-    public static Object createInstance(Class<?> clz, Object...args) {
+    public static Object createInstance(Class<?> clz, Object... args) {
         try {
             Constructor<?>[] constructors = clz.getConstructors();
             for (Constructor<?> constructor : constructors) {

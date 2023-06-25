@@ -38,16 +38,18 @@ public class EchoController extends BaseController {
         return HttpResponse.builder().status(HttpResponseStatus.OK).data("echo").build();
     }
 
-    @Path("{echo.test}")
+    @Path("/echo/{test}/{test2}")
     @GET
-    public void pathTest(RoutingContext routingContext) {
-        sendJsonResponse(routingContext, HttpResponseStatus.OK, "ok");
+    public HttpResponse pathParamTest(@PathParam("test") boolean test, @PathParam("test2") boolean test2) {
+        log.info("received path param {} - {}", test, test2);
+        return HttpResponse.builder().status(HttpResponseStatus.OK).data(test&&test2).build();
     }
 
-    @Path("{echo.test}/{echo.test2.path}")
+    @Path("/echo/query")
     @GET
-    public void pathTest2(RoutingContext routingContext) {
-        sendJsonResponse(routingContext, HttpResponseStatus.OK, "ok");
+    public HttpResponse queryParamTest(@QueryParam("test") String test, @QueryParam("test2") String test2) {
+        log.info("received path param {} - {}", test, test2);
+        return HttpResponse.builder().status(HttpResponseStatus.OK).data(test + test2).build();
     }
 
     @Path("/post")

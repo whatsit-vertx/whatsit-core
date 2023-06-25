@@ -34,32 +34,6 @@ public class RestControllerTest extends BaseAppTest {
     }
 
     @Test
-    void testPathTest(VertxTestContext vertxTestContext) {
-        webClient.get(ApplicationContext.getApplicationContext().getPort(), "localhost", "/v1/echo/test")
-                .send()
-                .onComplete(vertxTestContext.succeeding(response -> {
-                    vertxTestContext.verify(() -> {
-                        assertThat(response.statusCode()).isEqualTo(200);
-                        assertThat(response.bodyAsString()).contains("ok");
-                        vertxTestContext.completeNow();
-                    });
-                }));
-    }
-
-    @Test
-    void testPathTest2(VertxTestContext vertxTestContext) {
-        webClient.get(ApplicationContext.getApplicationContext().getPort(), "localhost", "/v1/echo/test/test")
-                .send()
-                .onComplete(vertxTestContext.succeeding(response -> {
-                    vertxTestContext.verify(() -> {
-                        assertThat(response.statusCode()).isEqualTo(200);
-                        assertThat(response.bodyAsString()).contains("ok");
-                        vertxTestContext.completeNow();
-                    });
-                }));
-    }
-
-    @Test
     void testPostTest(VertxTestContext vertxTestContext) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.put("test", "test");

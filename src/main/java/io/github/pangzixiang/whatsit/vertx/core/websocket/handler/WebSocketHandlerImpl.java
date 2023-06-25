@@ -56,8 +56,7 @@ public class WebSocketHandlerImpl implements WebSocketHandler {
             try {
                 Constructor<? extends AbstractWebSocketController> constructor = clz.getConstructor();
                 AbstractWebSocketController o = constructor.newInstance();
-                String path = CoreUtils.refactorControllerPath(webSocketAnnotation.path(),
-                        ApplicationConfiguration.getInstance());
+                String path = CoreUtils.refactorControllerPath(webSocketAnnotation.path());
                 controllerConcurrentMap.put(path, o);
                 if (webSocketAnnotation.filter().length > 0) {
                     Stream.of(webSocketAnnotation.filter())
