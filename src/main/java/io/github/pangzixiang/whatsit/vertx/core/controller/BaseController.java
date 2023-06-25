@@ -52,7 +52,11 @@ public class BaseController extends AbstractVerticle {
                 .sorted(Comparator.comparing(Method::getName))
                 .map(method -> new EndpointInfo(getVertx(), method))
                 .forEach(endpointInfo -> {
-                    String path = basePath.value() + endpointInfo.getUri();
+                    String baseUri = basePath.value();
+                    if (!baseUri.startsWith("/")) {
+                        baseUri = "/" + baseUri;
+                    }
+                    String path = baseUri + endpointInfo.getUri();
                     String httpMethod = endpointInfo.getHttpMethod();
                     if (StringUtils.isEmpty(endpointInfo.getHttpMethod())) {
                         log.warn("Won't register {} for path {} due to invalid http method {}", endpointInfo.getName(), path, httpMethod);

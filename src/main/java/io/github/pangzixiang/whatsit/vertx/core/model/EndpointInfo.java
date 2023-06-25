@@ -2,6 +2,7 @@ package io.github.pangzixiang.whatsit.vertx.core.model;
 
 import io.github.pangzixiang.whatsit.vertx.core.ApplicationConfiguration;
 import io.github.pangzixiang.whatsit.vertx.core.annotation.Filter;
+import io.github.pangzixiang.whatsit.vertx.core.annotation.RequestBody;
 import io.github.pangzixiang.whatsit.vertx.core.filter.HttpFilter;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
@@ -31,6 +32,7 @@ import static io.github.pangzixiang.whatsit.vertx.core.utils.VerticleUtils.deplo
 public class EndpointInfo {
     private final String name;
     private final Method method;
+    private final Class<?> returnType;
     private final Vertx vertx;
     private final String uri;
     private final String httpMethod;
@@ -43,6 +45,7 @@ public class EndpointInfo {
 
     public EndpointInfo(Vertx vertx, Method method) {
         method.setAccessible(true);
+        this.returnType = method.getReturnType();
         this.name = method.getName();
         this.vertx = vertx;
         this.method = method;
@@ -62,39 +65,48 @@ public class EndpointInfo {
 
     private void registerParameterFunctions() {
         Parameter[] parameters = method.getParameters();
-        for (int i = 0; i < parameters.length; i++) {
-            Parameter parameter = parameters[i];
-            if (parameter.getAnnotations().length == 0 && parameter.getType() == RoutingContext.class) {
-                parameterFunctions.add(routingContext -> routingContext);
-                continue;
+        for (Parameter parameter : parameters) {
+            if (parameter.getAnnotations().length == 0) {
+                if (parameter.getType() == RoutingContext.class) {
+                    parameterFunctions.add(routingContext -> routingContext);
+                    continue;
+                }
             } else {
                 if (parameter.getAnnotation(PathParam.class) != null) {
                     String pathParamName = parameter.getAnnotation(PathParam.class).value();
-                    parameterFunctions.add(routingContext -> {
-                        try {
-                            return Json.decodeValue(Json.encode(routingContext.pathParam(pathParamName)), parameter.getType());
-                        } catch (Exception e){
-                            log.error("Failed to convert value [{}] to type [{}]", routingContext.pathParam(pathParamName), parameter.getType(), e);
-                            throw new IllegalArgumentException("Invalid HTTP Request Path Parameter [%s] for Type [%s]"
-                                    .formatted(routingContext.pathParam(pathParamName), parameter.getType()));
-                        }
-                    });
+                    parameterFunctions.add(routingContext -> this.decodeParam(routingContext.pathParam(pathParamName), parameter.getType()));
                     continue;
                 } else if (parameter.getAnnotation(QueryParam.class) != null) {
                     String queryParamName = parameter.getAnnotation(QueryParam.class).value();
-                    parameterFunctions.add(routingContext -> {
-                        try {
-                            return Json.decodeValue(Json.encode(routingContext.queryParams().get(queryParamName)), parameter.getType());
-                        } catch (Exception e){
-                            log.error("Failed to convert value [{}] to type [{}]", routingContext.queryParams().get(queryParamName), parameter.getType(), e);
-                            throw new IllegalArgumentException("Invalid HTTP Request Query Parameter [%s] for Type [%s]"
-                                    .formatted(routingContext.queryParams().get(queryParamName), parameter.getType()));
-                        }
-                    });
+                    parameterFunctions.add(routingContext -> this.decodeParam(routingContext.queryParams().get(queryParamName), parameter.getType()));
+                    continue;
+                } else if (parameter.getAnnotation(FormParam.class) != null) {
+                    String formParamName = parameter.getAnnotation(FormParam.class).value();
+                    parameterFunctions.add(routingContext -> this.decodeParam(routingContext.request().formAttributes().get(formParamName), parameter.getType()));
+                    continue;
+                } else if (parameter.getAnnotation(HeaderParam.class) != null) {
+                    String headerName = parameter.getAnnotation(HeaderParam.class).value();
+                    parameterFunctions.add(routingContext -> this.decodeParam(routingContext.request().getHeader(headerName), parameter.getType()));
+                    continue;
+                } else if (parameter.getAnnotation(RequestBody.class) != null) {
+                    parameterFunctions.add(routingContext -> this.decodeParam(routingContext.body().asString(), parameter.getType()));
                     continue;
                 }
             }
             parameterFunctions.add(routingContext -> null);
+        }
+    }
+
+    private Object decodeParam(String value, Class<?> type) {
+        try {
+            if (type == String.class) {
+                return value;
+            } else {
+                return Json.decodeValue(value, type);
+            }
+        } catch (Exception e){
+            log.error("Failed to convert value [{}] to type [{}]", value, type, e);
+            throw new IllegalArgumentException("Invalid HTTP Request Parameter [%s] for Type [%s]".formatted(value, type));
         }
     }
 
