@@ -1,4 +1,4 @@
-# Whatsit
+# Whatsit (DEMISED and moved to [vertx-jax-rs](https://github.com/pangzixiang/vertx-jax-rs))
 > A Toolkit to build web microservice using [Vert.x](https://vertx.io)
 
 # Getting Started
